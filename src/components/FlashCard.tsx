@@ -14,6 +14,7 @@ interface FlashCardProps {
   result?: ResultInfo | null;
   troubleScore?: number | null;
   showEnglish?: boolean;
+  isWordMode?: boolean;
 }
 
 const ratingColors: Record<Rating, string> = {
@@ -36,7 +37,7 @@ function charSizeClass(text: string): string {
   return "text-4xl";
 }
 
-export default function FlashCard({ card, result, troubleScore, showEnglish }: FlashCardProps) {
+export default function FlashCard({ card, result, troubleScore, showEnglish, isWordMode }: FlashCardProps) {
   return (
     <div className="w-72 h-80 select-none relative">
       <div className="w-full h-full flex flex-col items-center justify-center rounded-2xl bg-zinc-800 border border-zinc-700 px-4">
@@ -79,11 +80,13 @@ export default function FlashCard({ card, result, troubleScore, showEnglish }: F
                 you typed: {result.userAnswer || "(empty)"}
               </span>
             )}
-            {result.rating !== "nope" && (
-              <span className="text-xs text-zinc-600 mt-1">
-                enter = more practice
-              </span>
-            )}
+            <span className="text-xs text-zinc-600 mt-1">
+              {isWordMode
+                ? "enter = next"
+                : result.rating !== "nope"
+                ? "enter = more practice"
+                : null}
+            </span>
           </div>
         ) : (
           <span className="text-zinc-600 text-sm">type the romaji</span>

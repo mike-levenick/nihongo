@@ -117,11 +117,17 @@ function StudySession() {
           }
         }
       }
+      if (isWordMode) {
+        // Word mode: wait for user to press Enter, no auto-advance
+        pendingQueueRef.current = newQueue;
+        pendingIndexRef.current = idx;
+        return;
+      }
       timeoutRef.current = setTimeout(() => {
         advanceToNext(newQueue, idx, completed);
       }, 1500);
     },
-    [isWeakSpots, type, advanceToNext]
+    [isWeakSpots, isWordMode, type, advanceToNext]
   );
 
   const handleRemoveCard = useCallback(
@@ -142,6 +148,12 @@ function StudySession() {
 
   const handleSubmit = useCallback(() => {
     if (queue.length === 0) return;
+
+    // Word mode: Enter during result just advances, no downgrade
+    if (phase === "result" && isWordMode) {
+      advanceToNext(pendingQueueRef.current, pendingIndexRef.current, cardsCompleted);
+      return;
+    }
 
     // If in result phase, handle downgrade
     if (phase === "result" && lastResult && lastResult.rating !== "nope") {
@@ -348,6 +360,7 @@ function StudySession() {
         result={lastResult}
         troubleScore={isWeakSpots ? getCharProgress(type, currentCard.card.romaji).trouble : null}
         showEnglish={isWordMode && showHints}
+        isWordMode={isWordMode}
       />
 
       <div className="h-24 flex flex-col items-center justify-center">
