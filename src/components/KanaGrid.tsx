@@ -72,7 +72,9 @@ export default function KanaGrid({
                     }`}
                   >
                     <span className="text-xl leading-tight">{c.character}</span>
-                    <span className="text-[10px] leading-tight">{c.romaji}</span>
+                    <span className="text-[10px] leading-tight">
+                      {c.aliases ? `${c.romaji}/${c.aliases[0]}` : c.romaji}
+                    </span>
                   </button>
                 );
               })}

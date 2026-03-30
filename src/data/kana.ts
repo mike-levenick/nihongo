@@ -4,6 +4,7 @@ export interface KanaChar {
   character: string;
   romaji: string;
   group: string;
+  aliases?: string[];
 }
 
 export const GROUPS = [
@@ -116,8 +117,8 @@ export const HIRAGANA: KanaChar[] = [
   { character: "ぞ", romaji: "zo", group: "z" },
   // D-row (dakuten of T)
   { character: "だ", romaji: "da", group: "d" },
-  { character: "ぢ", romaji: "di", group: "d" },
-  { character: "づ", romaji: "du", group: "d" },
+  { character: "ぢ", romaji: "di", group: "d", aliases: ["ji"] },
+  { character: "づ", romaji: "du", group: "d", aliases: ["zu"] },
   { character: "で", romaji: "de", group: "d" },
   { character: "ど", romaji: "do", group: "d" },
   // B-row (dakuten of H)
@@ -206,8 +207,8 @@ export const KATAKANA: KanaChar[] = [
   { character: "ゾ", romaji: "zo", group: "z" },
   // D-row (dakuten of T)
   { character: "ダ", romaji: "da", group: "d" },
-  { character: "ヂ", romaji: "di", group: "d" },
-  { character: "ヅ", romaji: "du", group: "d" },
+  { character: "ヂ", romaji: "di", group: "d", aliases: ["ji"] },
+  { character: "ヅ", romaji: "du", group: "d", aliases: ["zu"] },
   { character: "デ", romaji: "de", group: "d" },
   { character: "ド", romaji: "do", group: "d" },
   // B-row (dakuten of H)

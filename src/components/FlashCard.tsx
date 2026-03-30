@@ -40,6 +40,9 @@ export default function FlashCard({ card, result, troubleScore }: FlashCardProps
           <div className="flex flex-col items-center gap-1">
             <span className="text-3xl text-zinc-300 font-medium">
               {card.romaji}
+              {card.aliases && (
+                <span className="text-lg text-zinc-500"> ({card.aliases.join("/")})</span>
+              )}
             </span>
             <span className={`text-lg font-semibold ${ratingColors[result.rating]}`}>
               {ratingLabels[result.rating]}
