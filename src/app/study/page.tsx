@@ -8,7 +8,7 @@ import { updateCharAfterRating, revertAndReapply, checkAndUnlock, getCharProgres
 import FlashCard from "@/components/FlashCard";
 import ProgressBar from "@/components/ProgressBar";
 
-type Phase = "input" | "result";
+type Phase = "input" | "result" | "confirm-remove";
 
 function downgradeRating(r: Rating): Rating {
   if (r === "nailed") return "meh";
@@ -42,6 +42,9 @@ function StudySession() {
   const preRateQueueRef = useRef<CardState[]>([]);
   const preRateIndexRef = useRef(0);
   const currentCardRef = useRef<CardState | null>(null);
+  // Queue ready to advance (after rating, before confirm-remove decision)
+  const pendingQueueRef = useRef<CardState[]>([]);
+  const pendingIndexRef = useRef(0);
 
   useEffect(() => {
     const selected = chars
@@ -64,8 +67,12 @@ function StudySession() {
 
   const advanceToNext = useCallback(
     (newQueue: CardState[], idx: number, completed: number) => {
-      // Learning mode ends after 3x unique cards; study mode is endless
       if (!isEndless && completed >= totalCards * 3) {
+        setSessionDone(true);
+        return;
+      }
+      // If queue is empty (all cards removed), end session
+      if (newQueue.length === 0) {
         setSessionDone(true);
         return;
       }
@@ -76,6 +83,45 @@ function StudySession() {
       setPhase("input");
     },
     [totalCards, isEndless]
+  );
+
+  const scheduleAdvance = useCallback(
+    (newQueue: CardState[], idx: number, completed: number) => {
+      // In weakspots mode, check if trouble hit 0 after a nailed answer
+      if (isWeakSpots) {
+        const card = currentCardRef.current;
+        if (card) {
+          const progress = getCharProgress(type, card.card.romaji);
+          if (progress.trouble <= 0) {
+            // Store pending state and ask for confirmation
+            pendingQueueRef.current = newQueue;
+            pendingIndexRef.current = idx;
+            setPhase("confirm-remove");
+            return;
+          }
+        }
+      }
+      timeoutRef.current = setTimeout(() => {
+        advanceToNext(newQueue, idx, completed);
+      }, 1500);
+    },
+    [isWeakSpots, type, advanceToNext]
+  );
+
+  const handleRemoveCard = useCallback(
+    (remove: boolean) => {
+      let newQueue = pendingQueueRef.current;
+      const idx = pendingIndexRef.current;
+
+      if (remove) {
+        // Remove all instances of this card from the queue
+        const romaji = currentCardRef.current!.card.romaji;
+        newQueue = newQueue.filter((c) => c.card.romaji !== romaji);
+      }
+
+      advanceToNext(newQueue, idx, cardsCompleted);
+    },
+    [advanceToNext, cardsCompleted]
   );
 
   const handleSubmit = useCallback(() => {
@@ -139,23 +185,29 @@ function StudySession() {
 
     const newQueue = rateCard(queue, currentIndex, rating);
 
-    timeoutRef.current = setTimeout(() => {
-      advanceToNext(newQueue, currentIndex, cardsCompleted + 1);
-    }, 1500);
-  }, [queue, currentIndex, inputValue, type, cardsCompleted, phase, lastResult, mode, advanceToNext]);
+    scheduleAdvance(newQueue, currentIndex, cardsCompleted + 1);
+  }, [queue, currentIndex, inputValue, type, cardsCompleted, phase, lastResult, mode, advanceToNext, scheduleAdvance]);
 
-  // Listen for Enter during result phase
+  // Listen for Enter during result phase (downgrade) and confirm-remove phase
   useEffect(() => {
-    if (phase !== "result") return;
+    if (phase !== "result" && phase !== "confirm-remove") return;
     const handler = (e: KeyboardEvent) => {
-      if (e.key === "Enter") {
+      if (phase === "confirm-remove") {
+        if (e.key === "Enter") {
+          e.preventDefault();
+          handleRemoveCard(true);
+        } else if (e.key === " ") {
+          e.preventDefault();
+          handleRemoveCard(false);
+        }
+      } else if (phase === "result" && e.key === "Enter") {
         e.preventDefault();
         handleSubmit();
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [phase, handleSubmit]);
+  }, [phase, handleSubmit, handleRemoveCard]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -175,7 +227,12 @@ function StudySession() {
   if (sessionDone) {
     return (
       <div className="flex-1 flex flex-col items-center justify-center gap-6 px-4">
-        <h1 className="text-3xl font-bold">Session Complete</h1>
+        <h1 className="text-3xl font-bold">
+          {isWeakSpots && queue.length === 0 ? "All Clear!" : "Session Complete"}
+        </h1>
+        {isWeakSpots && queue.length === 0 && (
+          <p className="text-zinc-400">No more weak spots — nice work.</p>
+        )}
         <div className="flex gap-6 text-center">
           <div>
             <div className="text-3xl font-bold text-green-500">{stats.nailed}</div>
@@ -218,7 +275,7 @@ function StudySession() {
   const currentCard = queue[currentIndex];
   const label = groups
     ? groups.map((g) => (g === "nn" ? "n" : g)).join(", ")
-    : `${totalCards} chars`;
+    : `${queue.length} card${queue.length !== 1 ? "s" : ""} left`;
 
   return (
     <div className="flex-1 flex flex-col items-center justify-between py-8 px-4">
@@ -252,31 +309,49 @@ function StudySession() {
         troubleScore={isWeakSpots ? getCharProgress(type, currentCard.card.romaji).trouble : null}
       />
 
-      <div className="h-20 flex items-center">
-        <form
-          onSubmit={(e) => {
-            e.preventDefault();
-            handleSubmit();
-          }}
-          className="flex gap-2"
-        >
-          <input
-            ref={inputRef}
-            type="text"
-            value={inputValue}
-            onChange={(e) => setInputValue(e.target.value)}
-            placeholder={phase === "input" ? "romaji..." : ""}
-            disabled={phase === "result"}
-            autoFocus
-            className="w-40 px-4 py-3 bg-zinc-800 border border-zinc-600 rounded-xl text-center text-lg focus:outline-none focus:border-blue-500 disabled:opacity-50 transition-colors"
-          />
-          <button
-            type="submit"
-            className="px-5 py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-semibold transition-colors"
+      <div className="h-24 flex flex-col items-center justify-center">
+        {phase === "confirm-remove" ? (
+          <div className="flex flex-col items-center gap-2">
+            <span className="text-zinc-300 text-sm font-medium">
+              Trouble score hit 0 — remove from stack?
+            </span>
+            <div className="flex gap-3 text-xs text-zinc-500">
+              <span className="px-2 py-1 bg-zinc-800 rounded border border-zinc-700">
+                Enter
+              </span>
+              <span>remove</span>
+              <span className="px-2 py-1 bg-zinc-800 rounded border border-zinc-700">
+                Space
+              </span>
+              <span>keep</span>
+            </div>
+          </div>
+        ) : (
+          <form
+            onSubmit={(e) => {
+              e.preventDefault();
+              handleSubmit();
+            }}
+            className="flex gap-2"
           >
-            &crarr;
-          </button>
-        </form>
+            <input
+              ref={inputRef}
+              type="text"
+              value={inputValue}
+              onChange={(e) => setInputValue(e.target.value)}
+              placeholder={phase === "input" ? "romaji..." : ""}
+              disabled={phase === "result"}
+              autoFocus
+              className="w-40 px-4 py-3 bg-zinc-800 border border-zinc-600 rounded-xl text-center text-lg focus:outline-none focus:border-blue-500 disabled:opacity-50 transition-colors"
+            />
+            <button
+              type="submit"
+              className="px-5 py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-semibold transition-colors"
+            >
+              &crarr;
+            </button>
+          </form>
+        )}
       </div>
     </div>
   );
