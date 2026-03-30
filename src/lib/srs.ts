@@ -81,14 +81,15 @@ export interface DiffChar {
 
 export function diffAnswer(input: string, correct: string): DiffChar[] {
   const result: DiffChar[] = [];
-  const len = Math.max(input.length, correct.length);
-  for (let i = 0; i < len; i++) {
-    if (i < input.length) {
-      result.push({
-        char: input[i],
-        correct: i < correct.length && input[i] === correct[i],
-      });
-    }
+  for (let i = 0; i < input.length; i++) {
+    result.push({
+      char: input[i],
+      correct: i < correct.length && input[i] === correct[i],
+    });
+  }
+  // Show missing expected characters
+  for (let i = input.length; i < correct.length; i++) {
+    result.push({ char: correct[i], correct: false });
   }
   return result;
 }

@@ -52,7 +52,9 @@ function StudySession() {
   useEffect(() => {
     if (typeof window !== "undefined") {
       const saved = localStorage.getItem("nihongo_wordHints");
-      if (saved !== null) setShowHints(JSON.parse(saved));
+      if (saved !== null) {
+        try { setShowHints(JSON.parse(saved)); } catch { /* ignore */ }
+      }
     }
   }, []);
 
@@ -329,7 +331,7 @@ function StudySession() {
                 onClick={() => {
                   const next = !showHints;
                   setShowHints(next);
-                  localStorage.setItem("nihongo_wordHints", JSON.stringify(next));
+                  try { localStorage.setItem("nihongo_wordHints", JSON.stringify(next)); } catch { /* ignore */ }
                 }}
                 className={`text-xs px-2 py-0.5 rounded border transition-colors ${
                   showHints
@@ -337,6 +339,7 @@ function StudySession() {
                     : "border-zinc-700 text-zinc-600 hover:text-zinc-400"
                 }`}
                 title={showHints ? "Hide English hints" : "Show English hints"}
+                aria-pressed={showHints}
               >
                 {showHints ? "hints on" : "hints off"}
               </button>
