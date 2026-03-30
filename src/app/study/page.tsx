@@ -162,7 +162,7 @@ function StudySession() {
     if (phase !== "input") return;
 
     const card = queue[currentIndex];
-    const rating = gradeAnswer(inputValue, card.card.romaji);
+    const rating = gradeAnswer(inputValue, card.card.romaji, card.card.aliases);
 
     preRateQueueRef.current = queue;
     preRateIndexRef.current = currentIndex;

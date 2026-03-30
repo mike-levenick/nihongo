@@ -4,6 +4,7 @@ export interface KanaChar {
   character: string;
   romaji: string;
   group: string;
+  aliases?: string[];
 }
 
 export const GROUPS = [
@@ -18,6 +19,11 @@ export const GROUPS = [
   "r",
   "w",
   "nn",
+  "g",
+  "z",
+  "d",
+  "b",
+  "p",
 ] as const;
 
 export const GROUP_LABELS: Record<string, string> = {
@@ -32,6 +38,11 @@ export const GROUP_LABELS: Record<string, string> = {
   r: "R-row",
   w: "W-row",
   nn: "N",
+  g: "G-row",
+  z: "Z-row",
+  d: "D-row",
+  b: "B-row",
+  p: "P-row",
 };
 
 export const HIRAGANA: KanaChar[] = [
@@ -92,6 +103,36 @@ export const HIRAGANA: KanaChar[] = [
   { character: "を", romaji: "wo", group: "w" },
   // N
   { character: "ん", romaji: "n", group: "nn" },
+  // G-row (dakuten of K)
+  { character: "が", romaji: "ga", group: "g" },
+  { character: "ぎ", romaji: "gi", group: "g" },
+  { character: "ぐ", romaji: "gu", group: "g" },
+  { character: "げ", romaji: "ge", group: "g" },
+  { character: "ご", romaji: "go", group: "g" },
+  // Z-row (dakuten of S)
+  { character: "ざ", romaji: "za", group: "z" },
+  { character: "じ", romaji: "ji", group: "z" },
+  { character: "ず", romaji: "zu", group: "z" },
+  { character: "ぜ", romaji: "ze", group: "z" },
+  { character: "ぞ", romaji: "zo", group: "z" },
+  // D-row (dakuten of T)
+  { character: "だ", romaji: "da", group: "d" },
+  { character: "ぢ", romaji: "di", group: "d", aliases: ["ji"] },
+  { character: "づ", romaji: "du", group: "d", aliases: ["zu"] },
+  { character: "で", romaji: "de", group: "d" },
+  { character: "ど", romaji: "do", group: "d" },
+  // B-row (dakuten of H)
+  { character: "ば", romaji: "ba", group: "b" },
+  { character: "び", romaji: "bi", group: "b" },
+  { character: "ぶ", romaji: "bu", group: "b" },
+  { character: "べ", romaji: "be", group: "b" },
+  { character: "ぼ", romaji: "bo", group: "b" },
+  // P-row (handakuten of H)
+  { character: "ぱ", romaji: "pa", group: "p" },
+  { character: "ぴ", romaji: "pi", group: "p" },
+  { character: "ぷ", romaji: "pu", group: "p" },
+  { character: "ぺ", romaji: "pe", group: "p" },
+  { character: "ぽ", romaji: "po", group: "p" },
 ];
 
 export const KATAKANA: KanaChar[] = [
@@ -152,6 +193,36 @@ export const KATAKANA: KanaChar[] = [
   { character: "ヲ", romaji: "wo", group: "w" },
   // N
   { character: "ン", romaji: "n", group: "nn" },
+  // G-row (dakuten of K)
+  { character: "ガ", romaji: "ga", group: "g" },
+  { character: "ギ", romaji: "gi", group: "g" },
+  { character: "グ", romaji: "gu", group: "g" },
+  { character: "ゲ", romaji: "ge", group: "g" },
+  { character: "ゴ", romaji: "go", group: "g" },
+  // Z-row (dakuten of S)
+  { character: "ザ", romaji: "za", group: "z" },
+  { character: "ジ", romaji: "ji", group: "z" },
+  { character: "ズ", romaji: "zu", group: "z" },
+  { character: "ゼ", romaji: "ze", group: "z" },
+  { character: "ゾ", romaji: "zo", group: "z" },
+  // D-row (dakuten of T)
+  { character: "ダ", romaji: "da", group: "d" },
+  { character: "ヂ", romaji: "di", group: "d", aliases: ["ji"] },
+  { character: "ヅ", romaji: "du", group: "d", aliases: ["zu"] },
+  { character: "デ", romaji: "de", group: "d" },
+  { character: "ド", romaji: "do", group: "d" },
+  // B-row (dakuten of H)
+  { character: "バ", romaji: "ba", group: "b" },
+  { character: "ビ", romaji: "bi", group: "b" },
+  { character: "ブ", romaji: "bu", group: "b" },
+  { character: "ベ", romaji: "be", group: "b" },
+  { character: "ボ", romaji: "bo", group: "b" },
+  // P-row (handakuten of H)
+  { character: "パ", romaji: "pa", group: "p" },
+  { character: "ピ", romaji: "pi", group: "p" },
+  { character: "プ", romaji: "pu", group: "p" },
+  { character: "ペ", romaji: "pe", group: "p" },
+  { character: "ポ", romaji: "po", group: "p" },
 ];
 
 export function getKanaSet(type: KanaType): KanaChar[] {

@@ -1,6 +1,6 @@
 "use client";
 
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import { useRouter } from "next/navigation";
 import { KanaType, GROUPS, GROUP_LABELS, getKanaSet } from "@/data/kana";
 import { getUnlockedGroups, getGroupScore, getTroubleChars, getLastNav, saveLastNav } from "@/lib/storage";
@@ -11,12 +11,22 @@ type Mode = "learning" | "study";
 export default function Home() {
   const router = useRouter();
 
-  const lastNav = getLastNav();
-
-  const [kanaType, setKanaType] = useState<KanaType | null>(lastNav.type);
-  const [mode, setMode] = useState<Mode | null>(lastNav.mode as Mode | null);
+  const [kanaType, setKanaType] = useState<KanaType | null>(null);
+  const [mode, setMode] = useState<Mode | null>(null);
   const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
   const [selectedChars, setSelectedChars] = useState<Set<string>>(new Set());
+  const [hydrated, setHydrated] = useState(false);
+
+  useEffect(() => {
+    const lastNav = getLastNav();
+    setKanaType(lastNav.type);
+    setMode(lastNav.mode as Mode | null);
+    setHydrated(true);
+  }, []);
+
+  if (!hydrated) {
+    return <div className="flex-1" />;
+  }
 
   const startLearning = (groups: string[]) => {
     if (groups.length === 0 || !kanaType) return;
