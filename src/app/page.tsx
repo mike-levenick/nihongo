@@ -175,6 +175,21 @@ export default function Home() {
                 : "No weak spots yet — keep studying!"}
             </span>
           </button>
+          <button
+            onClick={() => {
+              const params = new URLSearchParams({
+                type: kanaType,
+                mode: "words",
+              });
+              router.push(`/study?${params.toString()}`);
+            }}
+            className="flex flex-col items-start gap-1 px-6 py-4 bg-zinc-800 hover:bg-zinc-700 border border-zinc-700 rounded-2xl transition-colors text-left"
+          >
+            <span className="font-semibold text-lg">Word Mode</span>
+            <span className="text-sm text-zinc-400">
+              Practice common {kanaType === "katakana" ? "loanwords" : "vocabulary"} — endless flashcards
+            </span>
+          </button>
         </div>
       </div>
     );

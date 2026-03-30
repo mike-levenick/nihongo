@@ -1,17 +1,20 @@
 "use client";
 
 import { KanaChar } from "@/data/kana";
-import { Rating } from "@/lib/srs";
+import { Rating, DiffChar } from "@/lib/srs";
 
 interface ResultInfo {
   rating: Rating;
   userAnswer: string;
+  diff?: DiffChar[];
 }
 
 interface FlashCardProps {
   card: KanaChar;
   result?: ResultInfo | null;
   troubleScore?: number | null;
+  showEnglish?: boolean;
+  isWordMode?: boolean;
 }
 
 const ratingColors: Record<Rating, string> = {
@@ -26,37 +29,64 @@ const ratingLabels: Record<Rating, string> = {
   nope: "Nope",
 };
 
-export default function FlashCard({ card, result, troubleScore }: FlashCardProps) {
+function charSizeClass(text: string): string {
+  const len = text.length;
+  if (len <= 2) return "text-8xl";
+  if (len <= 4) return "text-6xl";
+  if (len <= 6) return "text-5xl";
+  return "text-4xl";
+}
+
+export default function FlashCard({ card, result, troubleScore, showEnglish, isWordMode }: FlashCardProps) {
   return (
     <div className="w-72 h-80 select-none relative">
-      <div className="w-full h-full flex flex-col items-center justify-center rounded-2xl bg-zinc-800 border border-zinc-700">
+      <div className="w-full h-full flex flex-col items-center justify-center rounded-2xl bg-zinc-800 border border-zinc-700 px-4">
         {troubleScore != null && troubleScore > 0 && (
           <div className="absolute top-3 right-3 px-2 py-0.5 rounded-md bg-red-500/20 text-red-400 text-xs font-medium">
             {troubleScore}
           </div>
         )}
-        <span className="text-8xl mb-4">{card.character}</span>
+        <span className={`${charSizeClass(card.character)} mb-2 text-center leading-tight`}>
+          {card.character}
+        </span>
+        {showEnglish && card.english && !result && (
+          <span className="text-sm text-zinc-500 mb-2">{card.english}</span>
+        )}
         {result ? (
           <div className="flex flex-col items-center gap-1">
-            <span className="text-3xl text-zinc-300 font-medium">
+            <span className="text-2xl text-zinc-300 font-medium">
               {card.romaji}
               {card.aliases && (
-                <span className="text-lg text-zinc-500"> ({card.aliases.join("/")})</span>
+                <span className="text-base text-zinc-500"> ({card.aliases.join("/")})</span>
               )}
             </span>
+            {card.english && (
+              <span className="text-sm text-zinc-500">{card.english}</span>
+            )}
             <span className={`text-lg font-semibold ${ratingColors[result.rating]}`}>
               {ratingLabels[result.rating]}
             </span>
-            {result.rating !== "nailed" && (
+            {result.rating !== "nailed" && result.diff && (
+              <span className="text-sm font-mono">
+                {result.diff.map((d, i) => (
+                  <span key={i} className={d.correct ? "text-green-400" : "text-red-400"}>
+                    {d.char}
+                  </span>
+                ))}
+              </span>
+            )}
+            {result.rating !== "nailed" && !result.diff && (
               <span className="text-sm text-zinc-500">
                 you typed: {result.userAnswer || "(empty)"}
               </span>
             )}
-            {result.rating !== "nope" && (
-              <span className="text-xs text-zinc-600 mt-2">
-                enter = more practice
-              </span>
-            )}
+            <span className="text-xs text-zinc-600 mt-1">
+              {isWordMode
+                ? "enter = next"
+                : result.rating !== "nope"
+                ? "enter = more practice"
+                : null}
+            </span>
           </div>
         ) : (
           <span className="text-zinc-600 text-sm">type the romaji</span>

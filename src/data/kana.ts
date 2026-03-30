@@ -5,6 +5,7 @@ export interface KanaChar {
   romaji: string;
   group: string;
   aliases?: string[];
+  english?: string;
 }
 
 export const GROUPS = [

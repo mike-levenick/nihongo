@@ -2,8 +2,9 @@
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useEffect, useCallback, useRef, Suspense } from "react";
-import { KanaType, getCharsByGroups, getCharsByRomaji, GROUP_LABELS } from "@/data/kana";
-import { buildQueue, rateCard, gradeAnswer, Rating, CardState } from "@/lib/srs";
+import { KanaType, KanaChar, getCharsByGroups, getCharsByRomaji, GROUP_LABELS } from "@/data/kana";
+import { KATAKANA_WORDS, HIRAGANA_WORDS } from "@/data/words";
+import { buildQueue, rateCard, gradeAnswer, gradeWordAnswer, diffAnswer, Rating, CardState } from "@/lib/srs";
 import { updateCharAfterRating, revertAndReapply, checkAndUnlock, getCharProgress } from "@/lib/storage";
 import FlashCard from "@/components/FlashCard";
 import ProgressBar from "@/components/ProgressBar";
@@ -24,14 +25,16 @@ function StudySession() {
   const groups = searchParams.get("groups")?.split(",") || null;
   const chars = searchParams.get("chars")?.split(",") || null;
   const mode = searchParams.get("mode") || "study";
-  const isEndless = mode === "study" || mode === "weakspots";
+  const isEndless = mode === "study" || mode === "weakspots" || mode === "words";
   const isWeakSpots = mode === "weakspots";
+  const isWordMode = mode === "words";
 
   const [queue, setQueue] = useState<CardState[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
   const [phase, setPhase] = useState<Phase>("input");
   const [inputValue, setInputValue] = useState("");
-  const [lastResult, setLastResult] = useState<{ rating: Rating; userAnswer: string } | null>(null);
+  const [lastResult, setLastResult] = useState<{ rating: Rating; userAnswer: string; diff?: { char: string; correct: boolean }[] } | null>(null);
+  const [showHints, setShowHints] = useState(false);
   const [cardsCompleted, setCardsCompleted] = useState(0);
   const [totalCards, setTotalCards] = useState(0);
   const [sessionDone, setSessionDone] = useState(false);
@@ -47,16 +50,30 @@ function StudySession() {
   const pendingIndexRef = useRef(0);
 
   useEffect(() => {
-    const selected = chars
-      ? getCharsByRomaji(type, chars)
-      : groups
-      ? getCharsByGroups(type, groups)
-      : [];
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("nihongo_wordHints");
+      if (saved !== null) {
+        try { setShowHints(JSON.parse(saved)); } catch { /* ignore */ }
+      }
+    }
+  }, []);
+
+  useEffect(() => {
+    let selected: KanaChar[];
+    if (isWordMode) {
+      selected = type === "katakana" ? KATAKANA_WORDS : HIRAGANA_WORDS;
+    } else if (chars) {
+      selected = getCharsByRomaji(type, chars);
+    } else if (groups) {
+      selected = getCharsByGroups(type, groups);
+    } else {
+      selected = [];
+    }
     const q = buildQueue(selected);
     setQueue(q);
     setTotalCards(selected.length);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [type, groups?.join(","), chars?.join(",")]);
+  }, [type, groups?.join(","), chars?.join(","), isWordMode]);
 
   useEffect(() => {
     if (phase === "input") {
@@ -102,11 +119,17 @@ function StudySession() {
           }
         }
       }
+      if (isWordMode) {
+        // Word mode: wait for user to press Enter, no auto-advance
+        pendingQueueRef.current = newQueue;
+        pendingIndexRef.current = idx;
+        return;
+      }
       timeoutRef.current = setTimeout(() => {
         advanceToNext(newQueue, idx, completed);
       }, 1500);
     },
-    [isWeakSpots, type, advanceToNext]
+    [isWeakSpots, isWordMode, type, advanceToNext]
   );
 
   const handleRemoveCard = useCallback(
@@ -127,6 +150,12 @@ function StudySession() {
 
   const handleSubmit = useCallback(() => {
     if (queue.length === 0) return;
+
+    // Word mode: Enter during result just advances, no downgrade
+    if (phase === "result" && isWordMode) {
+      advanceToNext(pendingQueueRef.current, pendingIndexRef.current, cardsCompleted);
+      return;
+    }
 
     // If in result phase, handle downgrade
     if (phase === "result" && lastResult && lastResult.rating !== "nope") {
@@ -162,13 +191,18 @@ function StudySession() {
     if (phase !== "input") return;
 
     const card = queue[currentIndex];
-    const rating = gradeAnswer(inputValue, card.card.romaji, card.card.aliases);
+    const rating = isWordMode
+      ? gradeWordAnswer(inputValue, card.card.romaji, card.card.aliases)
+      : gradeAnswer(inputValue, card.card.romaji, card.card.aliases);
+    const diff = isWordMode && rating !== "nailed"
+      ? diffAnswer(inputValue.trim().toLowerCase(), card.card.romaji.toLowerCase())
+      : undefined;
 
     preRateQueueRef.current = queue;
     preRateIndexRef.current = currentIndex;
     currentCardRef.current = card;
 
-    setLastResult({ rating, userAnswer: inputValue });
+    setLastResult({ rating, userAnswer: inputValue, diff });
     setPhase("result");
     setStats((s) => ({ ...s, [rating]: s[rating] + 1 }));
     setCardsCompleted((c) => c + 1);
@@ -288,9 +322,29 @@ function StudySession() {
           >
             &larr; Back
           </button>
-          <span className="text-sm text-zinc-500 capitalize">
-            {type} &middot; {label}
-          </span>
+          <div className="flex items-center gap-2">
+            <span className="text-sm text-zinc-500 capitalize">
+              {type} &middot; {label}
+            </span>
+            {isWordMode && (
+              <button
+                onClick={() => {
+                  const next = !showHints;
+                  setShowHints(next);
+                  try { localStorage.setItem("nihongo_wordHints", JSON.stringify(next)); } catch { /* ignore */ }
+                }}
+                className={`text-xs px-2 py-0.5 rounded border transition-colors ${
+                  showHints
+                    ? "border-blue-500 text-blue-400"
+                    : "border-zinc-700 text-zinc-600 hover:text-zinc-400"
+                }`}
+                title={showHints ? "Hide English hints" : "Show English hints"}
+                aria-pressed={showHints}
+              >
+                {showHints ? "hints on" : "hints off"}
+              </button>
+            )}
+          </div>
         </div>
         {isEndless ? (
           <div className="flex gap-4 text-center text-sm">
@@ -308,6 +362,8 @@ function StudySession() {
         card={currentCard.card}
         result={lastResult}
         troubleScore={isWeakSpots ? getCharProgress(type, currentCard.card.romaji).trouble : null}
+        showEnglish={isWordMode && showHints}
+        isWordMode={isWordMode}
       />
 
       <div className="h-24 flex flex-col items-center justify-center">
@@ -353,7 +409,7 @@ function StudySession() {
               placeholder={phase === "input" ? "romaji..." : ""}
               disabled={phase === "result"}
               autoFocus
-              className="w-40 px-4 py-3 bg-zinc-800 border border-zinc-600 rounded-xl text-center text-lg focus:outline-none focus:border-blue-500 disabled:opacity-50 transition-colors"
+              className={`${isWordMode ? "w-56" : "w-40"} px-4 py-3 bg-zinc-800 border border-zinc-600 rounded-xl text-center text-lg focus:outline-none focus:border-blue-500 disabled:opacity-50 transition-colors`}
             />
             <button
               type="submit"
