@@ -73,6 +73,7 @@ function StudySession() {
       }
       // If queue is empty (all cards removed), end session
       if (newQueue.length === 0) {
+        setQueue([]);
         setSessionDone(true);
         return;
       }
@@ -311,18 +312,28 @@ function StudySession() {
 
       <div className="h-24 flex flex-col items-center justify-center">
         {phase === "confirm-remove" ? (
-          <div className="flex flex-col items-center gap-2">
+          <div className="flex flex-col items-center gap-3">
             <span className="text-zinc-300 text-sm font-medium">
               Trouble score hit 0 — remove from stack?
             </span>
-            <div className="flex gap-3 text-xs text-zinc-500">
-              <span className="px-2 py-1 bg-zinc-800 rounded border border-zinc-700">
-                Enter
-              </span>
+            <div className="flex gap-3">
+              <button
+                onClick={() => handleRemoveCard(true)}
+                className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-sm font-semibold text-white transition-colors"
+              >
+                Remove
+              </button>
+              <button
+                onClick={() => handleRemoveCard(false)}
+                className="px-4 py-2 rounded-xl bg-zinc-700 hover:bg-zinc-600 text-sm font-semibold text-zinc-100 transition-colors"
+              >
+                Keep Practicing
+              </button>
+            </div>
+            <div className="flex gap-3 text-xs text-zinc-600">
+              <span className="px-1.5 py-0.5 bg-zinc-800 rounded border border-zinc-700">Enter</span>
               <span>remove</span>
-              <span className="px-2 py-1 bg-zinc-800 rounded border border-zinc-700">
-                Space
-              </span>
+              <span className="px-1.5 py-0.5 bg-zinc-800 rounded border border-zinc-700">Space</span>
               <span>keep</span>
             </div>
           </div>
