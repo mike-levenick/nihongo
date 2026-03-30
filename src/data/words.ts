@@ -1,0 +1,123 @@
+import { KanaChar } from "./kana";
+
+export const KATAKANA_WORDS: KanaChar[] = [
+  // Food & Drink
+  { character: "ラーメン", romaji: "raamen", group: "words", english: "ramen" },
+  { character: "ビール", romaji: "biiru", group: "words", english: "beer" },
+  { character: "コーヒー", romaji: "koohii", group: "words", english: "coffee" },
+  { character: "ジュース", romaji: "juusu", group: "words", english: "juice" },
+  { character: "ケーキ", romaji: "keeki", group: "words", english: "cake" },
+  { character: "パン", romaji: "pan", group: "words", english: "bread" },
+  { character: "サラダ", romaji: "sarada", group: "words", english: "salad" },
+  { character: "チョコレート", romaji: "chokoreeto", group: "words", english: "chocolate" },
+  { character: "アイスクリーム", romaji: "aisukuriimu", group: "words", english: "ice cream" },
+  { character: "レストラン", romaji: "resutoran", group: "words", english: "restaurant" },
+  { character: "メニュー", romaji: "menyuu", group: "words", english: "menu" },
+  { character: "ミルク", romaji: "miruku", group: "words", english: "milk" },
+  // Places
+  { character: "ホテル", romaji: "hoteru", group: "words", english: "hotel" },
+  { character: "デパート", romaji: "depaato", group: "words", english: "department store" },
+  { character: "コンビニ", romaji: "konbini", group: "words", english: "convenience store" },
+  { character: "スーパー", romaji: "suupaa", group: "words", english: "supermarket" },
+  { character: "トイレ", romaji: "toire", group: "words", english: "toilet" },
+  { character: "エレベーター", romaji: "erebeetaa", group: "words", english: "elevator" },
+  { character: "エスカレーター", romaji: "esukareetaa", group: "words", english: "escalator" },
+  // Technology
+  { character: "テレビ", romaji: "terebi", group: "words", english: "television" },
+  { character: "パソコン", romaji: "pasokon", group: "words", english: "computer" },
+  { character: "スマホ", romaji: "sumaho", group: "words", english: "smartphone" },
+  { character: "インターネット", romaji: "intaanetto", group: "words", english: "internet" },
+  { character: "カメラ", romaji: "kamera", group: "words", english: "camera" },
+  { character: "ゲーム", romaji: "geemu", group: "words", english: "game" },
+  // Transportation
+  { character: "タクシー", romaji: "takushii", group: "words", english: "taxi" },
+  { character: "バス", romaji: "basu", group: "words", english: "bus" },
+  { character: "エアコン", romaji: "eakon", group: "words", english: "air conditioning" },
+  // Culture & Entertainment
+  { character: "アニメ", romaji: "anime", group: "words", english: "anime" },
+  { character: "カラオケ", romaji: "karaoke", group: "words", english: "karaoke" },
+  { character: "マンガ", romaji: "manga", group: "words", english: "manga" },
+  // Clothing & Daily Items
+  { character: "シャツ", romaji: "shatsu", group: "words", english: "shirt" },
+  { character: "ズボン", romaji: "zubon", group: "words", english: "pants" },
+  { character: "ネクタイ", romaji: "nekutai", group: "words", english: "necktie" },
+  { character: "スカート", romaji: "sukaato", group: "words", english: "skirt" },
+  { character: "ドア", romaji: "doa", group: "words", english: "door" },
+  { character: "テーブル", romaji: "teeburu", group: "words", english: "table" },
+  { character: "ベッド", romaji: "beddo", group: "words", english: "bed" },
+  { character: "ソファー", romaji: "sofaa", group: "words", english: "sofa" },
+  // People & Social
+  { character: "アルバイト", romaji: "arubaito", group: "words", english: "part-time job" },
+  { character: "プレゼント", romaji: "purezento", group: "words", english: "present/gift" },
+  { character: "クリスマス", romaji: "kurisumasu", group: "words", english: "Christmas" },
+  { character: "ボランティア", romaji: "borantia", group: "words", english: "volunteer" },
+  // Sports
+  { character: "サッカー", romaji: "sakkaa", group: "words", english: "soccer" },
+  { character: "テニス", romaji: "tenisu", group: "words", english: "tennis" },
+  { character: "スポーツ", romaji: "supootsu", group: "words", english: "sports" },
+  // Other common
+  { character: "ペン", romaji: "pen", group: "words", english: "pen" },
+  { character: "ノート", romaji: "nooto", group: "words", english: "notebook" },
+  { character: "クラス", romaji: "kurasu", group: "words", english: "class" },
+  { character: "ニュース", romaji: "nyuusu", group: "words", english: "news" },
+];
+
+export const HIRAGANA_WORDS: KanaChar[] = [
+  // Places
+  { character: "くうこう", romaji: "kuukou", group: "words", english: "airport" },
+  { character: "えき", romaji: "eki", group: "words", english: "station" },
+  { character: "ちかてつ", romaji: "chikatetsu", group: "words", english: "subway" },
+  { character: "びょういん", romaji: "byouin", group: "words", english: "hospital" },
+  { character: "がっこう", romaji: "gakkou", group: "words", english: "school" },
+  { character: "としょかん", romaji: "toshokan", group: "words", english: "library" },
+  { character: "こうえん", romaji: "kouen", group: "words", english: "park" },
+  { character: "ぎんこう", romaji: "ginkou", group: "words", english: "bank" },
+  { character: "ゆうびんきょく", romaji: "yuubinkyoku", group: "words", english: "post office" },
+  { character: "みせ", romaji: "mise", group: "words", english: "shop" },
+  // Time
+  { character: "きょう", romaji: "kyou", group: "words", english: "today" },
+  { character: "あした", romaji: "ashita", group: "words", english: "tomorrow" },
+  { character: "きのう", romaji: "kinou", group: "words", english: "yesterday" },
+  { character: "いま", romaji: "ima", group: "words", english: "now" },
+  { character: "あさ", romaji: "asa", group: "words", english: "morning" },
+  { character: "よる", romaji: "yoru", group: "words", english: "night" },
+  // People
+  { character: "ともだち", romaji: "tomodachi", group: "words", english: "friend" },
+  { character: "せんせい", romaji: "sensei", group: "words", english: "teacher" },
+  { character: "がくせい", romaji: "gakusei", group: "words", english: "student" },
+  { character: "こども", romaji: "kodomo", group: "words", english: "child" },
+  { character: "おとな", romaji: "otona", group: "words", english: "adult" },
+  { character: "かぞく", romaji: "kazoku", group: "words", english: "family" },
+  // Food
+  { character: "たべもの", romaji: "tabemono", group: "words", english: "food" },
+  { character: "のみもの", romaji: "nomimono", group: "words", english: "drink" },
+  { character: "みず", romaji: "mizu", group: "words", english: "water" },
+  { character: "おちゃ", romaji: "ocha", group: "words", english: "tea" },
+  { character: "ごはん", romaji: "gohan", group: "words", english: "rice/meal" },
+  { character: "さかな", romaji: "sakana", group: "words", english: "fish" },
+  { character: "にく", romaji: "niku", group: "words", english: "meat" },
+  { character: "やさい", romaji: "yasai", group: "words", english: "vegetables" },
+  // Common verbs (dictionary form)
+  { character: "たべる", romaji: "taberu", group: "words", english: "to eat" },
+  { character: "のむ", romaji: "nomu", group: "words", english: "to drink" },
+  { character: "いく", romaji: "iku", group: "words", english: "to go" },
+  { character: "くる", romaji: "kuru", group: "words", english: "to come" },
+  { character: "みる", romaji: "miru", group: "words", english: "to see" },
+  { character: "きく", romaji: "kiku", group: "words", english: "to listen" },
+  { character: "はなす", romaji: "hanasu", group: "words", english: "to speak" },
+  { character: "よむ", romaji: "yomu", group: "words", english: "to read" },
+  { character: "かく", romaji: "kaku", group: "words", english: "to write" },
+  { character: "かう", romaji: "kau", group: "words", english: "to buy" },
+  // Common adjectives
+  { character: "おおきい", romaji: "ookii", group: "words", english: "big" },
+  { character: "ちいさい", romaji: "chiisai", group: "words", english: "small" },
+  { character: "あたらしい", romaji: "atarashii", group: "words", english: "new" },
+  { character: "ふるい", romaji: "furui", group: "words", english: "old" },
+  { character: "たかい", romaji: "takai", group: "words", english: "expensive/tall" },
+  { character: "やすい", romaji: "yasui", group: "words", english: "cheap" },
+  // Common expressions
+  { character: "ありがとう", romaji: "arigatou", group: "words", english: "thank you" },
+  { character: "すみません", romaji: "sumimasen", group: "words", english: "excuse me" },
+  { character: "おはよう", romaji: "ohayou", group: "words", english: "good morning" },
+  { character: "おやすみ", romaji: "oyasumi", group: "words", english: "good night" },
+];
