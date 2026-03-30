@@ -42,11 +42,10 @@ export function buildQueue(chars: KanaChar[]): CardState[] {
 
 export function gradeAnswer(input: string, correct: string, aliases?: string[]): Rating {
   const normalized = input.trim().toLowerCase();
-  const target = correct.toLowerCase();
-  if (normalized === target) return "nailed";
-  if (aliases?.some((a) => normalized === a.toLowerCase())) return "nailed";
-  if (normalized.length > 0 && target.startsWith(normalized[0])) return "meh";
-  if (aliases?.some((a) => normalized.length > 0 && a.toLowerCase().startsWith(normalized[0]))) return "meh";
+  const candidates = [correct, ...(aliases ?? [])].map((c) => c.toLowerCase());
+
+  if (candidates.some((c) => c === normalized)) return "nailed";
+  if (normalized.length > 0 && candidates.some((c) => c.startsWith(normalized[0]))) return "meh";
   return "nope";
 }
 
