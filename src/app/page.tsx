@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { KanaType, GROUPS, GROUP_LABELS, getKanaSet } from "@/data/kana";
-import { getUnlockedGroups, getGroupScore, getTroubleChars, getLastNav, saveLastNav } from "@/lib/storage";
+import { getUnlockedGroups, getGroupScore, getTroubleChars, getLastNav, saveLastNav, exportProgress, importProgress } from "@/lib/storage";
 import KanaGrid from "@/components/KanaGrid";
 
 type Mode = "learning" | "study";
@@ -16,6 +16,8 @@ export default function Home() {
   const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
   const [selectedChars, setSelectedChars] = useState<Set<string>>(new Set());
   const [hydrated, setHydrated] = useState(false);
+  const [importStatus, setImportStatus] = useState<string | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
 
   useEffect(() => {
     const lastNav = getLastNav();
@@ -101,6 +103,57 @@ export default function Home() {
             <span className="font-medium">Katakana</span>
           </button>
         </div>
+        <div className="flex gap-3 text-xs">
+          <button
+            onClick={() => {
+              const json = exportProgress();
+              const blob = new Blob([json], { type: "application/json" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              a.download = `nihongo-progress-${new Date().toISOString().slice(0, 10)}.json`;
+              a.click();
+              URL.revokeObjectURL(url);
+            }}
+            className="text-zinc-600 hover:text-zinc-400 transition-colors"
+          >
+            Export progress
+          </button>
+          <span className="text-zinc-700">|</span>
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="text-zinc-600 hover:text-zinc-400 transition-colors"
+          >
+            Import progress
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".json"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              const reader = new FileReader();
+              reader.onload = () => {
+                const result = importProgress(reader.result as string);
+                if (result.error) {
+                  setImportStatus(result.error);
+                } else {
+                  setImportStatus(`Imported ${result.imported} entries`);
+                }
+                setTimeout(() => setImportStatus(null), 3000);
+              };
+              reader.readAsText(file);
+              e.target.value = "";
+            }}
+          />
+        </div>
+        {importStatus && (
+          <span className={`text-xs ${importStatus.startsWith("Imported") ? "text-green-400" : "text-red-400"}`}>
+            {importStatus}
+          </span>
+        )}
       </div>
     );
   }
