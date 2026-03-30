@@ -8,6 +8,7 @@ export interface CharProgress {
   timesNailed: number;
   lastRating: string | null;
   score: number;
+  trouble: number;
 }
 
 function getKey(key: string): string {
@@ -44,6 +45,7 @@ const DEFAULT_PROGRESS: CharProgress = {
   timesNailed: 0,
   lastRating: null,
   score: 0,
+  trouble: 0,
 };
 
 export function getCharProgress(
@@ -67,6 +69,12 @@ const SCORE_DELTAS: Record<Rating, number> = {
   nope: -1,
 };
 
+const TROUBLE_DELTAS: Record<Rating, number> = {
+  nailed: -1,
+  meh: 2,
+  nope: 5,
+};
+
 export function updateCharAfterRating(
   type: KanaType,
   romaji: string,
@@ -77,6 +85,7 @@ export function updateCharAfterRating(
   if (rating === "nailed") p.timesNailed++;
   p.lastRating = rating;
   p.score = Math.max(0, Math.min(9, p.score + SCORE_DELTAS[rating]));
+  p.trouble = Math.max(0, p.trouble + TROUBLE_DELTAS[rating]);
   saveCharProgress(type, romaji, p);
   return p;
 }
@@ -88,8 +97,9 @@ export function revertAndReapply(
   newRating: Rating
 ): CharProgress {
   const p = getCharProgress(type, romaji);
-  // Undo old rating's score delta
+  // Undo old rating's deltas, apply new
   p.score = Math.max(0, Math.min(9, p.score - SCORE_DELTAS[oldRating] + SCORE_DELTAS[newRating]));
+  p.trouble = Math.max(0, p.trouble - TROUBLE_DELTAS[oldRating] + TROUBLE_DELTAS[newRating]);
   if (oldRating === "nailed") p.timesNailed--;
   if (newRating === "nailed") p.timesNailed++;
   p.lastRating = newRating;
@@ -131,6 +141,23 @@ export function getGroupScore(type: KanaType, group: string): { mastered: number
   const chars = getKanaSet(type).filter((c) => c.group === group);
   const mastered = chars.filter((c) => getCharProgress(type, c.romaji).score >= 6).length;
   return { mastered, total: chars.length };
+}
+
+export function getTroubleChars(type: KanaType) {
+  const all = getKanaSet(type);
+  return all
+    .map((c) => ({ char: c, trouble: getCharProgress(type, c.romaji).trouble }))
+    .filter((x) => x.trouble > 0)
+    .sort((a, b) => b.trouble - a.trouble)
+    .map((x) => x.char);
+}
+
+export function saveLastNav(type: KanaType | null, mode: string | null): void {
+  safeSet("lastNav", { type, mode });
+}
+
+export function getLastNav(): { type: KanaType | null; mode: string | null } {
+  return safeGet("lastNav", { type: null, mode: null });
 }
 
 export function checkAndUnlock(type: KanaType): string | null {

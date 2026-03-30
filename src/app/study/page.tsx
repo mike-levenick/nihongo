@@ -2,9 +2,9 @@
 
 import { useSearchParams, useRouter } from "next/navigation";
 import { useState, useEffect, useCallback, useRef, Suspense } from "react";
-import { KanaType, getCharsByGroups, GROUP_LABELS } from "@/data/kana";
+import { KanaType, getCharsByGroups, getCharsByRomaji, GROUP_LABELS } from "@/data/kana";
 import { buildQueue, rateCard, gradeAnswer, Rating, CardState } from "@/lib/srs";
-import { updateCharAfterRating, revertAndReapply, checkAndUnlock } from "@/lib/storage";
+import { updateCharAfterRating, revertAndReapply, checkAndUnlock, getCharProgress } from "@/lib/storage";
 import FlashCard from "@/components/FlashCard";
 import ProgressBar from "@/components/ProgressBar";
 
@@ -21,8 +21,11 @@ function StudySession() {
   const router = useRouter();
 
   const type = (searchParams.get("type") as KanaType) || "hiragana";
-  const groups = searchParams.get("groups")?.split(",") || ["vowel"];
+  const groups = searchParams.get("groups")?.split(",") || null;
+  const chars = searchParams.get("chars")?.split(",") || null;
   const mode = searchParams.get("mode") || "study";
+  const isEndless = mode === "study" || mode === "weakspots";
+  const isWeakSpots = mode === "weakspots";
 
   const [queue, setQueue] = useState<CardState[]>([]);
   const [currentIndex, setCurrentIndex] = useState(0);
@@ -39,14 +42,18 @@ function StudySession() {
   const preRateQueueRef = useRef<CardState[]>([]);
   const preRateIndexRef = useRef(0);
   const currentCardRef = useRef<CardState | null>(null);
-  const currentRatingRef = useRef<Rating | null>(null);
 
   useEffect(() => {
-    const chars = getCharsByGroups(type, groups);
-    const q = buildQueue(chars);
+    const selected = chars
+      ? getCharsByRomaji(type, chars)
+      : groups
+      ? getCharsByGroups(type, groups)
+      : [];
+    const q = buildQueue(selected);
     setQueue(q);
-    setTotalCards(chars.length);
-  }, [type, groups.join(",")]);
+    setTotalCards(selected.length);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [type, groups?.join(","), chars?.join(",")]);
 
   useEffect(() => {
     if (phase === "input") {
@@ -57,7 +64,8 @@ function StudySession() {
 
   const advanceToNext = useCallback(
     (newQueue: CardState[], idx: number, completed: number) => {
-      if (completed >= totalCards * 3) {
+      // Learning mode ends after 3x unique cards; study mode is endless
+      if (!isEndless && completed >= totalCards * 3) {
         setSessionDone(true);
         return;
       }
@@ -67,7 +75,7 @@ function StudySession() {
       setInputValue("");
       setPhase("input");
     },
-    [totalCards]
+    [totalCards, isEndless]
   );
 
   const handleSubmit = useCallback(() => {
@@ -81,20 +89,16 @@ function StudySession() {
       const newRating = downgradeRating(oldRating);
       const card = currentCardRef.current!;
 
-      // Fix stats
       setStats((s) => ({
         ...s,
         [oldRating]: s[oldRating as keyof typeof s] - 1,
         [newRating]: s[newRating as keyof typeof s] + 1,
       }));
 
-      // Fix stored progress
       revertAndReapply(type, card.card.romaji, oldRating, newRating);
 
-      // Re-rate with downgraded rating from pre-rate state
       const newQueue = rateCard(preRateQueueRef.current, preRateIndexRef.current, newRating);
 
-      // Check auto-unlock
       if (mode === "learning") {
         const unlocked = checkAndUnlock(type);
         if (unlocked) {
@@ -113,21 +117,17 @@ function StudySession() {
     const card = queue[currentIndex];
     const rating = gradeAnswer(inputValue, card.card.romaji);
 
-    // Store pre-rate state for potential downgrade
     preRateQueueRef.current = queue;
     preRateIndexRef.current = currentIndex;
     currentCardRef.current = card;
-    currentRatingRef.current = rating;
 
     setLastResult({ rating, userAnswer: inputValue });
     setPhase("result");
     setStats((s) => ({ ...s, [rating]: s[rating] + 1 }));
     setCardsCompleted((c) => c + 1);
 
-    // Save progress with score
     updateCharAfterRating(type, card.card.romaji, rating);
 
-    // Check auto-unlock
     if (mode === "learning") {
       const unlocked = checkAndUnlock(type);
       if (unlocked) {
@@ -137,16 +137,14 @@ function StudySession() {
       }
     }
 
-    // Update queue
     const newQueue = rateCard(queue, currentIndex, rating);
 
-    // Auto-advance after delay
     timeoutRef.current = setTimeout(() => {
       advanceToNext(newQueue, currentIndex, cardsCompleted + 1);
     }, 1500);
   }, [queue, currentIndex, inputValue, type, cardsCompleted, phase, lastResult, mode, advanceToNext]);
 
-  // Listen for Enter during result phase (input is disabled so form won't fire)
+  // Listen for Enter during result phase
   useEffect(() => {
     if (phase !== "result") return;
     const handler = (e: KeyboardEvent) => {
@@ -201,7 +199,7 @@ function StudySession() {
         )}
         <div className="flex gap-3 mt-4">
           <button
-            onClick={() => router.push(`/?type=${type}&mode=${mode}`)}
+            onClick={() => router.push("/")}
             className="px-6 py-3 bg-blue-600 hover:bg-blue-500 rounded-xl font-semibold transition-colors"
           >
             Study Again
@@ -218,6 +216,9 @@ function StudySession() {
   }
 
   const currentCard = queue[currentIndex];
+  const label = groups
+    ? groups.map((g) => (g === "nn" ? "n" : g)).join(", ")
+    : `${totalCards} chars`;
 
   return (
     <div className="flex-1 flex flex-col items-center justify-between py-8 px-4">
@@ -230,13 +231,26 @@ function StudySession() {
             &larr; Back
           </button>
           <span className="text-sm text-zinc-500 capitalize">
-            {type} &middot; {groups.map((g) => (g === "nn" ? "n" : g)).join(", ")}
+            {type} &middot; {label}
           </span>
         </div>
-        <ProgressBar current={cardsCompleted} total={totalCards * 3} />
+        {isEndless ? (
+          <div className="flex gap-4 text-center text-sm">
+            <span className="text-green-500">{stats.nailed} nailed</span>
+            <span className="text-yellow-500">{stats.meh} close</span>
+            <span className="text-red-500">{stats.nope} nope</span>
+            <span className="text-zinc-500">{cardsCompleted} total</span>
+          </div>
+        ) : (
+          <ProgressBar current={cardsCompleted} total={totalCards * 3} />
+        )}
       </div>
 
-      <FlashCard card={currentCard.card} result={lastResult} />
+      <FlashCard
+        card={currentCard.card}
+        result={lastResult}
+        troubleScore={isWeakSpots ? getCharProgress(type, currentCard.card.romaji).trouble : null}
+      />
 
       <div className="h-20 flex items-center">
         <form

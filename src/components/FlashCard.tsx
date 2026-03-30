@@ -11,6 +11,7 @@ interface ResultInfo {
 interface FlashCardProps {
   card: KanaChar;
   result?: ResultInfo | null;
+  troubleScore?: number | null;
 }
 
 const ratingColors: Record<Rating, string> = {
@@ -25,10 +26,15 @@ const ratingLabels: Record<Rating, string> = {
   nope: "Nope",
 };
 
-export default function FlashCard({ card, result }: FlashCardProps) {
+export default function FlashCard({ card, result, troubleScore }: FlashCardProps) {
   return (
-    <div className="w-72 h-80 select-none">
+    <div className="w-72 h-80 select-none relative">
       <div className="w-full h-full flex flex-col items-center justify-center rounded-2xl bg-zinc-800 border border-zinc-700">
+        {troubleScore != null && troubleScore > 0 && (
+          <div className="absolute top-3 right-3 px-2 py-0.5 rounded-md bg-red-500/20 text-red-400 text-xs font-medium">
+            {troubleScore}
+          </div>
+        )}
         <span className="text-8xl mb-4">{card.character}</span>
         {result ? (
           <div className="flex flex-col items-center gap-1">

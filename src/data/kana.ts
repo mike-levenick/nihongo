@@ -164,3 +164,11 @@ export function getCharsByGroups(
 ): KanaChar[] {
   return getKanaSet(type).filter((k) => groups.includes(k.group));
 }
+
+export function getCharsByRomaji(
+  type: KanaType,
+  romajis: string[]
+): KanaChar[] {
+  const set = new Set(romajis);
+  return getKanaSet(type).filter((k) => set.has(k.romaji));
+}
