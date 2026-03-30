@@ -35,6 +35,8 @@ export const GROUPS = [
   "j",
   "by",
   "py",
+  "sokuon",
+  "long",
 ] as const;
 
 export const GROUP_LABELS: Record<string, string> = {
@@ -65,6 +67,8 @@ export const GROUP_LABELS: Record<string, string> = {
   j: "J-combo",
   by: "By-combo",
   py: "Py-combo",
+  sokuon: "Small っ",
+  long: "Long vowels",
 };
 
 export const HIRAGANA: KanaChar[] = [
@@ -190,6 +194,19 @@ export const HIRAGANA: KanaChar[] = [
   { character: "ぴゃ", romaji: "pya", group: "py" },
   { character: "ぴゅ", romaji: "pyu", group: "py" },
   { character: "ぴょ", romaji: "pyo", group: "py" },
+  // Small っ (sokuon) — doubles the following consonant
+  { character: "っ+k", romaji: "kk", group: "sokuon" },
+  { character: "っ+s", romaji: "ss", group: "sokuon" },
+  { character: "っ+t", romaji: "tt", group: "sokuon" },
+  { character: "っ+p", romaji: "pp", group: "sokuon" },
+  // Long vowels
+  { character: "ああ", romaji: "aa", group: "long" },
+  { character: "いい", romaji: "ii", group: "long" },
+  { character: "うう", romaji: "uu", group: "long" },
+  { character: "ええ", romaji: "ee", group: "long" },
+  { character: "おお", romaji: "oo", group: "long" },
+  { character: "えい", romaji: "ei", group: "long" },
+  { character: "おう", romaji: "ou", group: "long" },
 ];
 
 export const KATAKANA: KanaChar[] = [
@@ -315,6 +332,17 @@ export const KATAKANA: KanaChar[] = [
   { character: "ピャ", romaji: "pya", group: "py" },
   { character: "ピュ", romaji: "pyu", group: "py" },
   { character: "ピョ", romaji: "pyo", group: "py" },
+  // Small ッ (sokuon) — doubles the following consonant
+  { character: "ッ+k", romaji: "kk", group: "sokuon" },
+  { character: "ッ+s", romaji: "ss", group: "sokuon" },
+  { character: "ッ+t", romaji: "tt", group: "sokuon" },
+  { character: "ッ+p", romaji: "pp", group: "sokuon" },
+  // Long vowels (katakana uses ー)
+  { character: "アー", romaji: "aa", group: "long" },
+  { character: "イー", romaji: "ii", group: "long" },
+  { character: "ウー", romaji: "uu", group: "long" },
+  { character: "エー", romaji: "ee", group: "long" },
+  { character: "オー", romaji: "oo", group: "long" },
 ];
 
 export function getKanaSet(type: KanaType): KanaChar[] {
