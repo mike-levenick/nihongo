@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { KanaType, GROUPS, GROUP_LABELS, getKanaSet } from "@/data/kana";
 import { getUnlockedGroups, getGroupScore, getTroubleChars, getLastNav, saveLastNav, exportProgress, importProgress } from "@/lib/storage";
 import KanaGrid from "@/components/KanaGrid";
+import NavBar from "@/components/NavBar";
 
 type Mode = "learning" | "study";
 
@@ -189,16 +190,11 @@ export default function Home() {
 
     return (
       <div className="flex-1 flex flex-col items-center justify-center gap-8 px-4">
-        <button
-          onClick={() => {
-            setKanaType(null);
-            setMode(null);
-            saveLastNav(null, null);
-          }}
-          className="absolute top-4 left-4 text-zinc-500 hover:text-zinc-300 text-sm transition-colors"
-        >
-          &larr; Back
-        </button>
+        <NavBar onBack={() => {
+          setKanaType(null);
+          setMode(null);
+          saveLastNav(null, null);
+        }} />
         <div className="text-center">
           <h1 className="text-3xl font-bold mb-2 capitalize">{kanaType}</h1>
           <p className="text-zinc-500">Choose your mode</p>
@@ -298,16 +294,11 @@ export default function Home() {
 
     return (
       <div className="flex-1 flex flex-col items-center justify-center gap-6 px-4">
-        <button
-          onClick={() => {
-            setMode(null);
-            setSelectedGroups([]);
-            saveLastNav(kanaType, null);
-          }}
-          className="absolute top-4 left-4 text-zinc-500 hover:text-zinc-300 text-sm transition-colors"
-        >
-          &larr; Back
-        </button>
+        <NavBar onBack={() => {
+          setMode(null);
+          setSelectedGroups([]);
+          saveLastNav(kanaType, null);
+        }} />
         <div className="text-center">
           <h1 className="text-3xl font-bold mb-2">Learning Mode</h1>
           <p className="text-zinc-500 capitalize">{kanaType}</p>
@@ -400,17 +391,12 @@ export default function Home() {
   // Study mode: granular character selection
   return (
     <div className="flex-1 flex flex-col items-center gap-6 px-4 py-8 overflow-y-auto">
-      <button
-        onClick={() => {
-          setMode(null);
-          setSelectedChars(new Set());
-          saveLastNav(kanaType, null);
-        }}
-        className="absolute top-4 left-4 text-zinc-500 hover:text-zinc-300 text-sm transition-colors"
-      >
-        &larr; Back
-      </button>
-      <div className="text-center pt-4">
+      <NavBar onBack={() => {
+        setMode(null);
+        setSelectedChars(new Set());
+        saveLastNav(kanaType, null);
+      }} />
+      <div className="text-center">
         <h1 className="text-3xl font-bold mb-2">Study Mode</h1>
         <p className="text-zinc-500 capitalize">
           {kanaType} — pick characters to study
