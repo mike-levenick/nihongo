@@ -317,7 +317,7 @@ function StudySession() {
     <div className="flex-1 flex flex-col items-center justify-between pb-8 px-4">
       <div className="w-full flex flex-col items-center gap-4">
         <NavBar onBack={() => router.push("/")} />
-        <div className="flex items-center justify-center w-full max-w-sm">
+        <div className="flex items-center justify-center w-full max-w-md">
           <div className="flex items-center gap-2">
             <span className="text-sm text-zinc-500 capitalize">
               {type} &middot; {label}

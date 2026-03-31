@@ -12,9 +12,10 @@ export default function NavBar({ onBack, onHome }: NavBarProps) {
   const router = useRouter();
 
   return (
-    <div className="w-full max-w-md flex justify-between px-4 pt-4">
+    <div className="w-full max-w-md flex justify-between pt-4">
       {onBack ? (
         <button
+          type="button"
           onClick={onBack}
           className="text-zinc-500 hover:text-zinc-300 transition-colors text-sm"
         >
@@ -24,6 +25,7 @@ export default function NavBar({ onBack, onHome }: NavBarProps) {
         <div />
       )}
       <button
+        type="button"
         onClick={() => {
           saveLastNav(null, null);
           if (onHome) {
