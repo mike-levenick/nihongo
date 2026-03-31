@@ -53,9 +53,34 @@ export function StorageProvider({ children }: { children: ReactNode }) {
         if (!r.ok) throw new Error("API error");
         return r.json();
       })
-      .then((data: Record<string, unknown>) => {
-        // Merge: preserve any writes that happened before fetch completed
+      .then(async (data: Record<string, unknown>) => {
         cache.current = { ...data, ...cache.current };
+
+        // One-time migration from localStorage
+        if (typeof window !== "undefined" && !localStorage.getItem("nihongo_migrated")) {
+          const legacy: Record<string, unknown> = {};
+          for (let i = 0; i < localStorage.length; i++) {
+            const key = localStorage.key(i);
+            if (key && key.startsWith("nihongo_") && key !== "nihongo_migrated") {
+              const raw = localStorage.getItem(key);
+              if (raw) {
+                const storageKey = key.replace("nihongo_", "");
+                if (!(storageKey in cache.current)) {
+                  try { legacy[storageKey] = JSON.parse(raw); } catch { legacy[storageKey] = raw; }
+                }
+              }
+            }
+          }
+          if (Object.keys(legacy).length > 0) {
+            // Upload legacy data to server
+            for (const [k, v] of Object.entries(legacy)) {
+              cache.current[k] = v;
+              set(k, v);
+            }
+          }
+          localStorage.setItem("nihongo_migrated", "true");
+        }
+
         setLoaded(true);
       })
       .catch(() => {
@@ -90,8 +115,7 @@ export function StorageProvider({ children }: { children: ReactNode }) {
       // Refresh cache
       const fresh = await fetch("/api/progress?key=__all__");
       if (fresh.ok) {
-        const freshData = await fresh.json();
-        cache.current = { ...freshData, ...cache.current };
+        cache.current = await fresh.json();
       }
       return { imported: result.imported ?? 0 };
     } catch {

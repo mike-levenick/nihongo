@@ -30,7 +30,12 @@ export async function POST(request: NextRequest) {
   const userId = await getUserId();
   if (!userId) return NextResponse.json({ error: "Unauthorized" }, { status: 401 });
 
-  const body = await request.json();
+  let body;
+  try {
+    body = await request.json();
+  } catch {
+    return NextResponse.json({ error: "Invalid JSON" }, { status: 400 });
+  }
 
   // Bulk import
   if (body.action === "import") {
@@ -42,7 +47,7 @@ export async function POST(request: NextRequest) {
   }
 
   // Single key set
-  if (body.key && body.value !== undefined) {
+  if (typeof body.key === "string" && body.key && body.value !== undefined) {
     await setProgress(userId, body.key, body.value);
     return NextResponse.json({ ok: true });
   }
