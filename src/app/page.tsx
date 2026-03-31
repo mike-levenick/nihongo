@@ -115,14 +115,16 @@ export default function Home() {
               const url = URL.createObjectURL(blob);
               const a = document.createElement("a");
               a.href = url;
-              a.download = `nihongo-progress-${new Date().toISOString().slice(0, 10)}.json`;
+              const now = new Date();
+              const localDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+              a.download = `nihongo-progress-${localDate}.json`;
               a.style.display = "none";
               document.body.appendChild(a);
               a.click();
               setTimeout(() => {
                 URL.revokeObjectURL(url);
                 a.remove();
-              }, 0);
+              }, 1000);
             }}
             className="text-zinc-600 hover:text-zinc-400 transition-colors"
           >
@@ -170,7 +172,10 @@ export default function Home() {
           />
         </div>
         {importStatus && (
-          <span className={`text-xs ${importStatus.kind === "success" ? "text-green-400" : "text-red-400"}`}>
+          <span
+            className={`text-xs ${importStatus.kind === "success" ? "text-green-400" : "text-red-400"}`}
+            role={importStatus.kind === "success" ? "status" : "alert"}
+          >
             {importStatus.message}
           </span>
         )}
