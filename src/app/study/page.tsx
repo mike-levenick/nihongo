@@ -314,7 +314,7 @@ function StudySession() {
     : `${queue.length} card${queue.length !== 1 ? "s" : ""} left`;
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-between py-8 px-4">
+    <div className="flex-1 flex flex-col items-center justify-between pb-8 px-4">
       <div className="w-full flex flex-col items-center gap-4">
         <NavBar onBack={() => router.push("/")} />
         <div className="flex items-center justify-center w-full max-w-sm">
