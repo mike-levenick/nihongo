@@ -49,9 +49,13 @@ export function StorageProvider({ children }: { children: ReactNode }) {
 
     // Load all progress from API
     fetch("/api/progress?key=__all__")
-      .then((r) => r.json())
+      .then((r) => {
+        if (!r.ok) throw new Error("API error");
+        return r.json();
+      })
       .then((data: Record<string, unknown>) => {
-        cache.current = data;
+        // Merge: preserve any writes that happened before fetch completed
+        cache.current = { ...data, ...cache.current };
         setLoaded(true);
       })
       .catch(() => {
@@ -62,6 +66,7 @@ export function StorageProvider({ children }: { children: ReactNode }) {
   const exportAll = useCallback(async (): Promise<string> => {
     try {
       const r = await fetch("/api/progress?key=__all__");
+      if (!r.ok) return JSON.stringify({}, null, 2);
       const data = await r.json();
       return JSON.stringify(data, null, 2);
     } catch {
@@ -80,11 +85,15 @@ export function StorageProvider({ children }: { children: ReactNode }) {
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ action: "import", data }),
       });
+      if (!r.ok) return { imported: 0, error: "Import failed" };
       const result = await r.json();
       // Refresh cache
       const fresh = await fetch("/api/progress?key=__all__");
-      cache.current = await fresh.json();
-      return { imported: result.imported };
+      if (fresh.ok) {
+        const freshData = await fresh.json();
+        cache.current = { ...freshData, ...cache.current };
+      }
+      return { imported: result.imported ?? 0 };
     } catch {
       return { imported: 0, error: "Invalid JSON" };
     }

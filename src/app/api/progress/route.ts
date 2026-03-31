@@ -4,7 +4,7 @@ import { getProgress, setProgress, getAllProgress, importAllProgress } from "@/l
 
 async function getUserId(): Promise<string | null> {
   const session = await auth();
-  return (session?.user as Record<string, unknown>)?.username as string | null;
+  return session?.user?.id ?? null;
 }
 
 export async function GET(request: NextRequest) {
@@ -33,7 +33,10 @@ export async function POST(request: NextRequest) {
   const body = await request.json();
 
   // Bulk import
-  if (body.action === "import" && body.data) {
+  if (body.action === "import") {
+    if (typeof body.data !== "object" || body.data === null || Array.isArray(body.data)) {
+      return NextResponse.json({ error: "Invalid import data" }, { status: 400 });
+    }
     const count = await importAllProgress(userId, body.data);
     return NextResponse.json({ imported: count });
   }
