@@ -5,6 +5,7 @@ import { useRouter } from "next/navigation";
 import { KanaType, GROUPS, GROUP_LABELS, getKanaSet } from "@/data/kana";
 import { getUnlockedGroups, getGroupScore, getTroubleChars, getLastNav, saveLastNav, exportProgress, importProgress } from "@/lib/storage";
 import KanaGrid from "@/components/KanaGrid";
+import NavBar from "@/components/NavBar";
 
 type Mode = "learning" | "study";
 
@@ -33,6 +34,13 @@ export default function Home() {
   if (!hydrated) {
     return <div className="flex-1" />;
   }
+
+  const goHome = () => {
+    setKanaType(null);
+    setMode(null);
+    setSelectedGroups([]);
+    setSelectedChars(new Set());
+  };
 
   const startLearning = (groups: string[]) => {
     if (groups.length === 0 || !kanaType) return;
@@ -188,17 +196,13 @@ export default function Home() {
     const troubleChars = getTroubleChars(kanaType);
 
     return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-8 px-4">
-        <button
-          onClick={() => {
-            setKanaType(null);
-            setMode(null);
-            saveLastNav(null, null);
-          }}
-          className="absolute top-4 left-4 text-zinc-500 hover:text-zinc-300 text-sm transition-colors"
-        >
-          &larr; Back
-        </button>
+      <div className="flex-1 flex flex-col items-center px-4">
+        <NavBar onBack={() => {
+          setKanaType(null);
+          setMode(null);
+          saveLastNav(null, null);
+        }} onHome={goHome} />
+        <div className="flex-1 flex flex-col items-center justify-center gap-8">
         <div className="text-center">
           <h1 className="text-3xl font-bold mb-2 capitalize">{kanaType}</h1>
           <p className="text-zinc-500">Choose your mode</p>
@@ -269,6 +273,7 @@ export default function Home() {
             </span>
           </button>
         </div>
+        </div>
       </div>
     );
   }
@@ -297,17 +302,13 @@ export default function Home() {
     };
 
     return (
-      <div className="flex-1 flex flex-col items-center justify-center gap-6 px-4">
-        <button
-          onClick={() => {
-            setMode(null);
-            setSelectedGroups([]);
-            saveLastNav(kanaType, null);
-          }}
-          className="absolute top-4 left-4 text-zinc-500 hover:text-zinc-300 text-sm transition-colors"
-        >
-          &larr; Back
-        </button>
+      <div className="flex-1 flex flex-col items-center px-4">
+        <NavBar onBack={() => {
+          setMode(null);
+          setSelectedGroups([]);
+          saveLastNav(kanaType, null);
+        }} onHome={goHome} />
+        <div className="flex-1 flex flex-col items-center justify-center gap-6">
         <div className="text-center">
           <h1 className="text-3xl font-bold mb-2">Learning Mode</h1>
           <p className="text-zinc-500 capitalize">{kanaType}</p>
@@ -393,24 +394,21 @@ export default function Home() {
             {learningSelected.length} of {unlocked.length} row{unlocked.length !== 1 ? "s" : ""} selected
           </p>
         </div>
+        </div>
       </div>
     );
   }
 
   // Study mode: granular character selection
   return (
-    <div className="flex-1 flex flex-col items-center gap-6 px-4 py-8 overflow-y-auto">
-      <button
-        onClick={() => {
-          setMode(null);
-          setSelectedChars(new Set());
-          saveLastNav(kanaType, null);
-        }}
-        className="absolute top-4 left-4 text-zinc-500 hover:text-zinc-300 text-sm transition-colors"
-      >
-        &larr; Back
-      </button>
-      <div className="text-center pt-4">
+    <div className="flex-1 flex flex-col items-center px-4 overflow-y-auto">
+      <NavBar onBack={() => {
+        setMode(null);
+        setSelectedChars(new Set());
+        saveLastNav(kanaType, null);
+      }} onHome={goHome} />
+      <div className="flex flex-col items-center gap-6 py-4">
+      <div className="text-center">
         <h1 className="text-3xl font-bold mb-2">Study Mode</h1>
         <p className="text-zinc-500 capitalize">
           {kanaType} — pick characters to study
@@ -431,6 +429,7 @@ export default function Home() {
       >
         Start Studying ({selectedChars.size} character{selectedChars.size !== 1 ? "s" : ""})
       </button>
+      </div>
     </div>
   );
 }

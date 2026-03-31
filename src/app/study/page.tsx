@@ -7,6 +7,7 @@ import { KATAKANA_WORDS, HIRAGANA_WORDS } from "@/data/words";
 import { buildQueue, rateCard, gradeAnswer, gradeWordAnswer, diffAnswer, Rating, CardState } from "@/lib/srs";
 import { updateCharAfterRating, revertAndReapply, checkAndUnlock, getCharProgress } from "@/lib/storage";
 import FlashCard from "@/components/FlashCard";
+import NavBar from "@/components/NavBar";
 import ProgressBar from "@/components/ProgressBar";
 
 type Phase = "input" | "result" | "confirm-remove";
@@ -313,15 +314,10 @@ function StudySession() {
     : `${queue.length} card${queue.length !== 1 ? "s" : ""} left`;
 
   return (
-    <div className="flex-1 flex flex-col items-center justify-between py-8 px-4">
+    <div className="flex-1 flex flex-col items-center justify-between pb-8 px-4">
       <div className="w-full flex flex-col items-center gap-4">
-        <div className="flex items-center justify-between w-full max-w-sm">
-          <button
-            onClick={() => router.push("/")}
-            className="text-zinc-500 hover:text-zinc-300 transition-colors text-sm"
-          >
-            &larr; Back
-          </button>
+        <NavBar onBack={() => router.push("/")} />
+        <div className="flex items-center justify-center w-full max-w-md">
           <div className="flex items-center gap-2">
             <span className="text-sm text-zinc-500 capitalize">
               {type} &middot; {label}
