@@ -42,11 +42,7 @@ export function StorageProvider({ children }: { children: ReactNode }) {
         method: "POST",
         headers: { "Content-Type": "application/json" },
         body: JSON.stringify({ key, value }),
-      }).then((r) => {
-        if (!r.ok) console.error(`Failed to save progress key "${key}":`, r.status);
-      }).catch((err) => {
-        console.error(`Failed to save progress key "${key}":`, err);
-      });
+      }).catch(() => {});
     };
 
     setStorageBackend(get, set);
