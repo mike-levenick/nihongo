@@ -125,7 +125,7 @@ export const KATAKANA_WORDS: KanaChar[] = [
   { character: "ロック", romaji: "rokku", group: "words", english: "rock (music)" },
   { character: "Jポップ", romaji: "jeipoppu", group: "words", english: "J-pop" },
   // Sports
-  { character: "バスケットボール", romaji: "basukettabooru", group: "words", english: "basketball" },
+  { character: "バスケットボール", romaji: "basukettobooru", group: "words", english: "basketball" },
   // Clothing
   { character: "ドレス", romaji: "doresu", group: "words", english: "dress" },
   { character: "Tシャツ", romaji: "tiishatsu", group: "words", english: "t-shirt" },
