@@ -16,8 +16,9 @@ export default function Home() {
   const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
   const [selectedChars, setSelectedChars] = useState<Set<string>>(new Set());
   const [hydrated, setHydrated] = useState(false);
-  const [importStatus, setImportStatus] = useState<string | null>(null);
+  const [importStatus, setImportStatus] = useState<{ kind: "success" | "error"; message: string } | null>(null);
   const fileInputRef = useRef<HTMLInputElement>(null);
+  const importTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const lastNav = getLastNav();
@@ -138,11 +139,12 @@ export default function Home() {
               reader.onload = () => {
                 const result = importProgress(reader.result as string);
                 if (result.error) {
-                  setImportStatus(result.error);
+                  setImportStatus({ kind: "error", message: result.error });
                 } else {
-                  setImportStatus(`Imported ${result.imported} entries`);
+                  setImportStatus({ kind: "success", message: `Imported ${result.imported} entries` });
                 }
-                setTimeout(() => setImportStatus(null), 3000);
+                if (importTimerRef.current) clearTimeout(importTimerRef.current);
+                importTimerRef.current = setTimeout(() => setImportStatus(null), 3000);
               };
               reader.readAsText(file);
               e.target.value = "";
@@ -150,8 +152,8 @@ export default function Home() {
           />
         </div>
         {importStatus && (
-          <span className={`text-xs ${importStatus.startsWith("Imported") ? "text-green-400" : "text-red-400"}`}>
-            {importStatus}
+          <span className={`text-xs ${importStatus.kind === "success" ? "text-green-400" : "text-red-400"}`}>
+            {importStatus.message}
           </span>
         )}
       </div>
