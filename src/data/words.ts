@@ -118,6 +118,33 @@ export const KATAKANA_WORDS: KanaChar[] = [
   { character: "シャワー", romaji: "shawaa", group: "words", english: "shower" },
   { character: "カレンダー", romaji: "karendaa", group: "words", english: "calendar" },
   { character: "ビタミン", romaji: "bitamin", group: "words", english: "vitamin" },
+  // More food
+  { character: "アイスコーヒー", romaji: "aisukoohii", group: "words", english: "iced coffee" },
+  // Music & Culture
+  { character: "ジャズ", romaji: "jazu", group: "words", english: "jazz" },
+  { character: "ロック", romaji: "rokku", group: "words", english: "rock (music)" },
+  { character: "Jポップ", romaji: "jeipoppu", group: "words", english: "J-pop" },
+  // Sports
+  { character: "バスケットボール", romaji: "basukettobooru", group: "words", english: "basketball" },
+  // Clothing
+  { character: "ドレス", romaji: "doresu", group: "words", english: "dress" },
+  { character: "Tシャツ", romaji: "tiishatsu", group: "words", english: "t-shirt" },
+  // Countries
+  { character: "アメリカ", romaji: "amerika", group: "words", english: "America" },
+  { character: "カナダ", romaji: "kanada", group: "words", english: "Canada" },
+  { character: "ブラジル", romaji: "burajiru", group: "words", english: "Brazil" },
+  { character: "イギリス", romaji: "igirisu", group: "words", english: "Britain" },
+  // Cities
+  { character: "ニューヨーク", romaji: "nyuuyooku", group: "words", english: "New York" },
+  { character: "トロント", romaji: "toronto", group: "words", english: "Toronto" },
+  // Nationalities
+  { character: "アメリカじん", romaji: "amerikajin", group: "words", english: "American" },
+  { character: "カナダじん", romaji: "kanadajin", group: "words", english: "Canadian" },
+  { character: "ブラジルじん", romaji: "burajirijin", group: "words", english: "Brazilian" },
+  { character: "イギリスじん", romaji: "igirisujin", group: "words", english: "British" },
+  // Other
+  { character: "エンジニア", romaji: "enjinia", group: "words", english: "engineer" },
+  { character: "バスてい", romaji: "basutei", group: "words", english: "bus stop" },
 ];
 
 export const HIRAGANA_WORDS: KanaChar[] = [
@@ -256,4 +283,107 @@ export const HIRAGANA_WORDS: KanaChar[] = [
   { character: "かぜ", romaji: "kaze", group: "words", english: "wind" },
   { character: "くもり", romaji: "kumori", group: "words", english: "cloudy" },
   { character: "はれ", romaji: "hare", group: "words", english: "sunny/clear" },
+  // Food (from Duolingo)
+  { character: "そば", romaji: "soba", group: "words", english: "soba noodles" },
+  { character: "うどん", romaji: "udon", group: "words", english: "udon noodles" },
+  { character: "てんぷら", romaji: "tenpura", group: "words", english: "tempura" },
+  { character: "おにぎり", romaji: "onigiri", group: "words", english: "rice ball" },
+  { character: "すし", romaji: "sushi", group: "words", english: "sushi" },
+  { character: "みそしる", romaji: "misoshiru", group: "words", english: "miso soup" },
+  { character: "ていしょく", romaji: "teishoku", group: "words", english: "meal set" },
+  { character: "こうちゃ", romaji: "koucha", group: "words", english: "black tea" },
+  // Meals
+  { character: "あさごはん", romaji: "asagohan", group: "words", english: "breakfast" },
+  { character: "ひるごはん", romaji: "hirugohan", group: "words", english: "lunch" },
+  { character: "ばんごはん", romaji: "bangohan", group: "words", english: "dinner" },
+  { character: "まいあさ", romaji: "maiasa", group: "words", english: "every morning" },
+  { character: "まいばん", romaji: "maiban", group: "words", english: "every night" },
+  // Colors
+  { character: "くろい", romaji: "kuroi", group: "words", english: "black" },
+  { character: "あおい", romaji: "aoi", group: "words", english: "blue" },
+  { character: "あかい", romaji: "akai", group: "words", english: "red" },
+  { character: "しろい", romaji: "shiroi", group: "words", english: "white" },
+  // Family (extended)
+  { character: "おっと", romaji: "otto", group: "words", english: "my husband" },
+  { character: "つま", romaji: "tsuma", group: "words", english: "my wife" },
+  { character: "おとうと", romaji: "otouto", group: "words", english: "younger brother" },
+  { character: "いもうと", romaji: "imouto", group: "words", english: "younger sister" },
+  { character: "むすこ", romaji: "musuko", group: "words", english: "my son" },
+  { character: "むすめ", romaji: "musume", group: "words", english: "my daughter" },
+  // Adjectives (more)
+  { character: "おもしろい", romaji: "omoshiroi", group: "words", english: "interesting/funny" },
+  { character: "かわいい", romaji: "kawaii", group: "words", english: "cute" },
+  { character: "かっこいい", romaji: "kakkoii", group: "words", english: "cool/stylish" },
+  { character: "やさしい", romaji: "yasashii", group: "words", english: "kind/gentle" },
+  { character: "しずか", romaji: "shizuka", group: "words", english: "quiet" },
+  { character: "にぎやか", romaji: "nigiyaka", group: "words", english: "lively" },
+  { character: "きれい", romaji: "kirei", group: "words", english: "clean/beautiful" },
+  { character: "あかるい", romaji: "akarui", group: "words", english: "bright/cheerful" },
+  { character: "すてき", romaji: "suteki", group: "words", english: "lovely/nice" },
+  { character: "うるさい", romaji: "urusai", group: "words", english: "noisy/loud" },
+  { character: "いそがしい", romaji: "isogashii", group: "words", english: "busy" },
+  { character: "ゆうめい", romaji: "yuumei", group: "words", english: "famous" },
+  { character: "いい", romaji: "ii", group: "words", english: "good" },
+  // Professions
+  { character: "いしゃ", romaji: "isha", group: "words", english: "doctor" },
+  { character: "べんごし", romaji: "bengoshi", group: "words", english: "lawyer" },
+  { character: "かんごし", romaji: "kangoshi", group: "words", english: "nurse" },
+  { character: "かいしゃいん", romaji: "kaishain", group: "words", english: "office worker" },
+  { character: "だいがくせい", romaji: "daigakusei", group: "words", english: "college student" },
+  // Counting
+  { character: "ひとつ", romaji: "hitotsu", group: "words", english: "one (thing)" },
+  { character: "ふたつ", romaji: "futatsu", group: "words", english: "two (things)" },
+  { character: "みっつ", romaji: "mittsu", group: "words", english: "three (things)" },
+  { character: "よっつ", romaji: "yottsu", group: "words", english: "four (things)" },
+  // Items
+  { character: "かさ", romaji: "kasa", group: "words", english: "umbrella" },
+  { character: "くつ", romaji: "kutsu", group: "words", english: "shoes" },
+  { character: "ぼうし", romaji: "boushi", group: "words", english: "hat" },
+  { character: "さいふ", romaji: "saifu", group: "words", english: "wallet" },
+  { character: "かばん", romaji: "kaban", group: "words", english: "bag" },
+  { character: "ふく", romaji: "fuku", group: "words", english: "clothes" },
+  // Places
+  { character: "だいがく", romaji: "daigaku", group: "words", english: "university" },
+  { character: "ここ", romaji: "koko", group: "words", english: "here" },
+  { character: "そこ", romaji: "soko", group: "words", english: "there" },
+  { character: "どこ", romaji: "doko", group: "words", english: "where" },
+  // Expressions (more)
+  { character: "はい", romaji: "hai", group: "words", english: "yes" },
+  { character: "いいえ", romaji: "iie", group: "words", english: "no" },
+  { character: "ください", romaji: "kudasai", group: "words", english: "please (give me)" },
+  { character: "ようこそ", romaji: "youkoso", group: "words", english: "welcome" },
+  { character: "はじめまして", romaji: "hajimemashite", group: "words", english: "nice to meet you" },
+  { character: "またあした", romaji: "mataashita", group: "words", english: "see you tomorrow" },
+  { character: "じゃあね", romaji: "jaane", group: "words", english: "bye" },
+  { character: "ありがとうございます", romaji: "arigatougozaimasu", group: "words", english: "thank you (polite)" },
+  { character: "おはようございます", romaji: "ohayougozaimasu", group: "words", english: "good morning (polite)" },
+  { character: "どうぞよろしく", romaji: "douzoyoroshiku", group: "words", english: "nice to meet you" },
+  // Adverbs
+  { character: "とても", romaji: "totemo", group: "words", english: "very" },
+  { character: "すこし", romaji: "sukoshi", group: "words", english: "a little" },
+  { character: "よく", romaji: "yoku", group: "words", english: "often/well" },
+  { character: "ときどき", romaji: "tokidoki", group: "words", english: "sometimes" },
+  // Entertainment
+  { character: "えいが", romaji: "eiga", group: "words", english: "movie" },
+  { character: "おんがく", romaji: "ongaku", group: "words", english: "music" },
+  { character: "ざっし", romaji: "zasshi", group: "words", english: "magazine" },
+  { character: "やきゅう", romaji: "yakyuu", group: "words", english: "baseball" },
+  // Japan
+  { character: "にほん", romaji: "nihon", group: "words", english: "Japan" },
+  { character: "にほんじん", romaji: "nihonjin", group: "words", english: "Japanese (person)" },
+  { character: "きょうと", romaji: "kyouto", group: "words", english: "Kyoto" },
+  { character: "おおさか", romaji: "oosaka", group: "words", english: "Osaka" },
+  { character: "とうきょう", romaji: "toukyou", group: "words", english: "Tokyo" },
+  // Polite verb forms (common)
+  { character: "たべます", romaji: "tabemasu", group: "words", english: "eat (polite)" },
+  { character: "のみます", romaji: "nomimasu", group: "words", english: "drink (polite)" },
+  { character: "ききます", romaji: "kikimasu", group: "words", english: "listen (polite)" },
+  { character: "よみます", romaji: "yomimasu", group: "words", english: "read (polite)" },
+  { character: "みます", romaji: "mimasu", group: "words", english: "watch (polite)" },
+  { character: "します", romaji: "shimasu", group: "words", english: "do (polite)" },
+  // Money
+  { character: "いくら", romaji: "ikura", group: "words", english: "how much" },
+  { character: "えん", romaji: "en", group: "words", english: "yen" },
+  // Time
+  { character: "なんじ", romaji: "nanji", group: "words", english: "what time" },
 ];

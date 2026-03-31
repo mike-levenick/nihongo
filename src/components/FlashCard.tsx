@@ -39,8 +39,8 @@ function charSizeClass(text: string): string {
 
 export default function FlashCard({ card, result, troubleScore, showEnglish, isWordMode }: FlashCardProps) {
   return (
-    <div className="w-72 h-80 select-none relative">
-      <div className="w-full h-full flex flex-col items-center justify-center rounded-2xl bg-zinc-800 border border-zinc-700 px-4">
+    <div className={`w-full ${card.character.length > 4 ? "max-w-md" : "max-w-sm"} min-h-80 select-none relative`}>
+      <div className="w-full min-h-80 flex flex-col items-center justify-center rounded-2xl bg-zinc-800 border border-zinc-700 px-4 py-6">
         {troubleScore != null && troubleScore > 0 && (
           <div className="absolute top-3 right-3 px-2 py-0.5 rounded-md bg-red-500/20 text-red-400 text-xs font-medium">
             {troubleScore}
