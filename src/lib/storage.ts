@@ -1,7 +1,17 @@
 import { KanaType, GROUPS, getKanaSet } from "@/data/kana";
 import { Rating } from "./srs";
 
-const STORAGE_PREFIX = "nihongo_";
+// Pluggable storage backend — set by StorageProvider
+let _getter: (<T>(key: string, fallback: T) => T) | null = null;
+let _setter: ((key: string, value: unknown) => void) | null = null;
+
+export function setStorageBackend(
+  getter: <T>(key: string, fallback: T) => T,
+  setter: (key: string, value: unknown) => void
+) {
+  _getter = getter;
+  _setter = setter;
+}
 
 export interface CharProgress {
   timesSeen: number;
@@ -11,33 +21,13 @@ export interface CharProgress {
   trouble: number;
 }
 
-function getKey(key: string): string {
-  return STORAGE_PREFIX + key;
-}
-
 function safeGet<T>(key: string, fallback: T): T {
-  if (typeof window === "undefined") return fallback;
-  try {
-    const raw = localStorage.getItem(getKey(key));
-    if (!raw) return fallback;
-    const parsed = JSON.parse(raw);
-    // Merge with fallback to handle missing fields from older data
-    if (typeof fallback === "object" && fallback !== null && !Array.isArray(fallback)) {
-      return { ...fallback, ...parsed };
-    }
-    return parsed;
-  } catch {
-    return fallback;
-  }
+  if (_getter) return _getter(key, fallback);
+  return fallback;
 }
 
 function safeSet(key: string, value: unknown): void {
-  if (typeof window === "undefined") return;
-  try {
-    localStorage.setItem(getKey(key), JSON.stringify(value));
-  } catch {
-    // localStorage full or unavailable
-  }
+  if (_setter) _setter(key, value);
 }
 
 const DEFAULT_PROGRESS: CharProgress = {
@@ -97,7 +87,6 @@ export function revertAndReapply(
   newRating: Rating
 ): CharProgress {
   const p = getCharProgress(type, romaji);
-  // Undo old rating's deltas, apply new
   p.score = Math.max(0, Math.min(9, p.score - SCORE_DELTAS[oldRating] + SCORE_DELTAS[newRating]));
   p.trouble = Math.max(0, p.trouble - TROUBLE_DELTAS[oldRating] + TROUBLE_DELTAS[newRating]);
   if (oldRating === "nailed") p.timesNailed--;
@@ -160,42 +149,12 @@ export function getLastNav(): { type: KanaType | null; mode: string | null } {
   return safeGet("lastNav", { type: null, mode: null });
 }
 
-export function exportProgress(): string {
-  if (typeof window === "undefined") return JSON.stringify({}, null, 2);
-  const data: Record<string, unknown> = {};
-  try {
-    for (let i = 0; i < localStorage.length; i++) {
-      const key = localStorage.key(i);
-      if (key && key.startsWith(STORAGE_PREFIX)) {
-        const raw = localStorage.getItem(key);
-        if (raw === null) continue;
-        try { data[key] = JSON.parse(raw); } catch { data[key] = raw; }
-      }
-    }
-  } catch { /* storage unavailable */ }
-  return JSON.stringify(data, null, 2);
+export function getSetting<T>(key: string, fallback: T): T {
+  return safeGet(key, fallback);
 }
 
-export function importProgress(json: string): { imported: number; error?: string } {
-  if (typeof window === "undefined") return { imported: 0, error: "Storage unavailable" };
-  try {
-    const data = JSON.parse(json);
-    if (typeof data !== "object" || data === null || Array.isArray(data)) {
-      return { imported: 0, error: "Invalid format" };
-    }
-    let count = 0;
-    for (const [key, value] of Object.entries(data)) {
-      if (key.startsWith(STORAGE_PREFIX)) {
-        try {
-          localStorage.setItem(key, JSON.stringify(value));
-          count++;
-        } catch { /* skip individual failures */ }
-      }
-    }
-    return { imported: count };
-  } catch {
-    return { imported: 0, error: "Invalid JSON" };
-  }
+export function saveSetting(key: string, value: unknown): void {
+  safeSet(key, value);
 }
 
 export function checkAndUnlock(type: KanaType): string | null {

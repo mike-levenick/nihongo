@@ -3,7 +3,8 @@
 import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { KanaType, GROUPS, GROUP_LABELS, getKanaSet } from "@/data/kana";
-import { getUnlockedGroups, getGroupScore, getTroubleChars, getLastNav, saveLastNav, exportProgress, importProgress } from "@/lib/storage";
+import { getUnlockedGroups, getGroupScore, getTroubleChars, getLastNav, saveLastNav } from "@/lib/storage";
+import { useStorageContext } from "@/lib/storage-provider";
 import KanaGrid from "@/components/KanaGrid";
 import NavBar from "@/components/NavBar";
 
@@ -11,6 +12,7 @@ type Mode = "learning" | "study";
 
 export default function Home() {
   const router = useRouter();
+  const { loaded, exportAll, importAll } = useStorageContext();
 
   const [kanaType, setKanaType] = useState<KanaType | null>(null);
   const [mode, setMode] = useState<Mode | null>(null);
@@ -22,6 +24,7 @@ export default function Home() {
   const importTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
+    if (!loaded) return;
     const lastNav = getLastNav();
     setKanaType(lastNav.type);
     setMode(lastNav.mode as Mode | null);
@@ -29,7 +32,7 @@ export default function Home() {
     return () => {
       if (importTimerRef.current) clearTimeout(importTimerRef.current);
     };
-  }, []);
+  }, [loaded]);
 
   if (!hydrated) {
     return <div className="flex-1" />;
@@ -117,8 +120,8 @@ export default function Home() {
         </div>
         <div className="flex gap-3 text-xs">
           <button
-            onClick={() => {
-              const json = exportProgress();
+            onClick={async () => {
+              const json = await exportAll();
               const blob = new Blob([json], { type: "application/json" });
               const url = URL.createObjectURL(blob);
               const a = document.createElement("a");
@@ -159,12 +162,12 @@ export default function Home() {
                 if (importTimerRef.current) clearTimeout(importTimerRef.current);
                 importTimerRef.current = setTimeout(() => setImportStatus(null), 3000);
               };
-              reader.onload = () => {
+              reader.onload = async () => {
                 if (typeof reader.result !== "string") {
                   setStatusWithTimer({ kind: "error", message: "Failed to read file" });
                   return;
                 }
-                const result = importProgress(reader.result);
+                const result = await importAll(reader.result);
                 if (result.error) {
                   setStatusWithTimer({ kind: "error", message: result.error });
                 } else {
