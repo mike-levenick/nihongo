@@ -5,8 +5,7 @@ import { useState, useEffect, useCallback, useRef, Suspense } from "react";
 import { KanaType, KanaChar, getCharsByGroups, getCharsByRomaji, GROUP_LABELS } from "@/data/kana";
 import { KATAKANA_WORDS, HIRAGANA_WORDS } from "@/data/words";
 import { buildQueue, rateCard, gradeAnswer, gradeWordAnswer, diffAnswer, Rating, CardState } from "@/lib/srs";
-import { updateCharAfterRating, revertAndReapply, checkAndUnlock, getCharProgress, getSetting, saveSetting } from "@/lib/storage";
-import { useStorageContext } from "@/lib/storage-provider";
+import { updateCharAfterRating, revertAndReapply, checkAndUnlock, getCharProgress } from "@/lib/storage";
 import FlashCard from "@/components/FlashCard";
 import NavBar from "@/components/NavBar";
 import ProgressBar from "@/components/ProgressBar";
@@ -22,7 +21,6 @@ function downgradeRating(r: Rating): Rating {
 function StudySession() {
   const searchParams = useSearchParams();
   const router = useRouter();
-  const { loaded } = useStorageContext();
 
   const type = (searchParams.get("type") as KanaType) || "hiragana";
   const groups = searchParams.get("groups")?.split(",") || null;
@@ -53,8 +51,15 @@ function StudySession() {
   const pendingIndexRef = useRef(0);
 
   useEffect(() => {
-    if (!loaded) return;
-    setShowHints(getSetting("wordHints", false));
+    if (typeof window !== "undefined") {
+      const saved = localStorage.getItem("nihongo_wordHints");
+      if (saved !== null) {
+        try { setShowHints(JSON.parse(saved)); } catch { /* ignore */ }
+      }
+    }
+  }, []);
+
+  useEffect(() => {
     let selected: KanaChar[];
     if (isWordMode) {
       selected = type === "katakana" ? KATAKANA_WORDS : HIRAGANA_WORDS;
@@ -69,7 +74,7 @@ function StudySession() {
     setQueue(q);
     setTotalCards(selected.length);
     // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, [type, groups?.join(","), chars?.join(","), isWordMode, loaded]);
+  }, [type, groups?.join(","), chars?.join(","), isWordMode]);
 
   useEffect(() => {
     if (phase === "input") {
@@ -322,7 +327,7 @@ function StudySession() {
                 onClick={() => {
                   const next = !showHints;
                   setShowHints(next);
-                  saveSetting("wordHints", next)
+                  try { localStorage.setItem("nihongo_wordHints", JSON.stringify(next)); } catch { /* ignore */ }
                 }}
                 className={`text-xs px-2 py-0.5 rounded border transition-colors ${
                   showHints
