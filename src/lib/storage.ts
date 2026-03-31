@@ -160,6 +160,44 @@ export function getLastNav(): { type: KanaType | null; mode: string | null } {
   return safeGet("lastNav", { type: null, mode: null });
 }
 
+export function exportProgress(): string {
+  if (typeof window === "undefined") return JSON.stringify({}, null, 2);
+  const data: Record<string, unknown> = {};
+  try {
+    for (let i = 0; i < localStorage.length; i++) {
+      const key = localStorage.key(i);
+      if (key && key.startsWith(STORAGE_PREFIX)) {
+        const raw = localStorage.getItem(key);
+        if (raw === null) continue;
+        try { data[key] = JSON.parse(raw); } catch { data[key] = raw; }
+      }
+    }
+  } catch { /* storage unavailable */ }
+  return JSON.stringify(data, null, 2);
+}
+
+export function importProgress(json: string): { imported: number; error?: string } {
+  if (typeof window === "undefined") return { imported: 0, error: "Storage unavailable" };
+  try {
+    const data = JSON.parse(json);
+    if (typeof data !== "object" || data === null || Array.isArray(data)) {
+      return { imported: 0, error: "Invalid format" };
+    }
+    let count = 0;
+    for (const [key, value] of Object.entries(data)) {
+      if (key.startsWith(STORAGE_PREFIX)) {
+        try {
+          localStorage.setItem(key, JSON.stringify(value));
+          count++;
+        } catch { /* skip individual failures */ }
+      }
+    }
+    return { imported: count };
+  } catch {
+    return { imported: 0, error: "Invalid JSON" };
+  }
+}
+
 export function checkAndUnlock(type: KanaType): string | null {
   const unlocked = getUnlockedGroups(type);
   const lastGroup = unlocked[unlocked.length - 1];

@@ -1,9 +1,9 @@
 "use client";
 
-import { useState, useEffect } from "react";
+import { useState, useEffect, useRef } from "react";
 import { useRouter } from "next/navigation";
 import { KanaType, GROUPS, GROUP_LABELS, getKanaSet } from "@/data/kana";
-import { getUnlockedGroups, getGroupScore, getTroubleChars, getLastNav, saveLastNav } from "@/lib/storage";
+import { getUnlockedGroups, getGroupScore, getTroubleChars, getLastNav, saveLastNav, exportProgress, importProgress } from "@/lib/storage";
 import KanaGrid from "@/components/KanaGrid";
 
 type Mode = "learning" | "study";
@@ -16,12 +16,18 @@ export default function Home() {
   const [selectedGroups, setSelectedGroups] = useState<string[]>([]);
   const [selectedChars, setSelectedChars] = useState<Set<string>>(new Set());
   const [hydrated, setHydrated] = useState(false);
+  const [importStatus, setImportStatus] = useState<{ kind: "success" | "error"; message: string } | null>(null);
+  const fileInputRef = useRef<HTMLInputElement>(null);
+  const importTimerRef = useRef<ReturnType<typeof setTimeout> | null>(null);
 
   useEffect(() => {
     const lastNav = getLastNav();
     setKanaType(lastNav.type);
     setMode(lastNav.mode as Mode | null);
     setHydrated(true);
+    return () => {
+      if (importTimerRef.current) clearTimeout(importTimerRef.current);
+    };
   }, []);
 
   if (!hydrated) {
@@ -101,6 +107,78 @@ export default function Home() {
             <span className="font-medium">Katakana</span>
           </button>
         </div>
+        <div className="flex gap-3 text-xs">
+          <button
+            onClick={() => {
+              const json = exportProgress();
+              const blob = new Blob([json], { type: "application/json" });
+              const url = URL.createObjectURL(blob);
+              const a = document.createElement("a");
+              a.href = url;
+              const now = new Date();
+              const localDate = `${now.getFullYear()}-${String(now.getMonth() + 1).padStart(2, "0")}-${String(now.getDate()).padStart(2, "0")}`;
+              a.download = `nihongo-progress-${localDate}.json`;
+              a.style.display = "none";
+              document.body.appendChild(a);
+              a.click();
+              setTimeout(() => {
+                URL.revokeObjectURL(url);
+                a.remove();
+              }, 1000);
+            }}
+            className="text-zinc-600 hover:text-zinc-400 transition-colors"
+          >
+            Export progress
+          </button>
+          <span className="text-zinc-700">|</span>
+          <button
+            onClick={() => fileInputRef.current?.click()}
+            className="text-zinc-600 hover:text-zinc-400 transition-colors"
+          >
+            Import progress
+          </button>
+          <input
+            ref={fileInputRef}
+            type="file"
+            accept=".json"
+            className="hidden"
+            onChange={(e) => {
+              const file = e.target.files?.[0];
+              if (!file) return;
+              const reader = new FileReader();
+              const setStatusWithTimer = (status: { kind: "success" | "error"; message: string }) => {
+                setImportStatus(status);
+                if (importTimerRef.current) clearTimeout(importTimerRef.current);
+                importTimerRef.current = setTimeout(() => setImportStatus(null), 3000);
+              };
+              reader.onload = () => {
+                if (typeof reader.result !== "string") {
+                  setStatusWithTimer({ kind: "error", message: "Failed to read file" });
+                  return;
+                }
+                const result = importProgress(reader.result);
+                if (result.error) {
+                  setStatusWithTimer({ kind: "error", message: result.error });
+                } else {
+                  setStatusWithTimer({ kind: "success", message: `Imported ${result.imported} entries` });
+                }
+              };
+              reader.onerror = () => {
+                setStatusWithTimer({ kind: "error", message: "Failed to read file" });
+              };
+              reader.readAsText(file);
+              e.target.value = "";
+            }}
+          />
+        </div>
+        {importStatus && (
+          <span
+            className={`text-xs ${importStatus.kind === "success" ? "text-green-400" : "text-red-400"}`}
+            role={importStatus.kind === "success" ? "status" : "alert"}
+          >
+            {importStatus.message}
+          </span>
+        )}
       </div>
     );
   }
