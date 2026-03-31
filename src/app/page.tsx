@@ -25,6 +25,9 @@ export default function Home() {
     setKanaType(lastNav.type);
     setMode(lastNav.mode as Mode | null);
     setHydrated(true);
+    return () => {
+      if (importTimerRef.current) clearTimeout(importTimerRef.current);
+    };
   }, []);
 
   if (!hydrated) {
@@ -113,8 +116,13 @@ export default function Home() {
               const a = document.createElement("a");
               a.href = url;
               a.download = `nihongo-progress-${new Date().toISOString().slice(0, 10)}.json`;
+              a.style.display = "none";
+              document.body.appendChild(a);
               a.click();
-              URL.revokeObjectURL(url);
+              setTimeout(() => {
+                URL.revokeObjectURL(url);
+                a.remove();
+              }, 0);
             }}
             className="text-zinc-600 hover:text-zinc-400 transition-colors"
           >
@@ -136,15 +144,25 @@ export default function Home() {
               const file = e.target.files?.[0];
               if (!file) return;
               const reader = new FileReader();
-              reader.onload = () => {
-                const result = importProgress(reader.result as string);
-                if (result.error) {
-                  setImportStatus({ kind: "error", message: result.error });
-                } else {
-                  setImportStatus({ kind: "success", message: `Imported ${result.imported} entries` });
-                }
+              const setStatusWithTimer = (status: { kind: "success" | "error"; message: string }) => {
+                setImportStatus(status);
                 if (importTimerRef.current) clearTimeout(importTimerRef.current);
                 importTimerRef.current = setTimeout(() => setImportStatus(null), 3000);
+              };
+              reader.onload = () => {
+                if (typeof reader.result !== "string") {
+                  setStatusWithTimer({ kind: "error", message: "Failed to read file" });
+                  return;
+                }
+                const result = importProgress(reader.result);
+                if (result.error) {
+                  setStatusWithTimer({ kind: "error", message: result.error });
+                } else {
+                  setStatusWithTimer({ kind: "success", message: `Imported ${result.imported} entries` });
+                }
+              };
+              reader.onerror = () => {
+                setStatusWithTimer({ kind: "error", message: "Failed to read file" });
               };
               reader.readAsText(file);
               e.target.value = "";
