@@ -105,14 +105,13 @@ function StudySession() {
   );
 
   const scheduleAdvance = useCallback(
-    (newQueue: CardState[], idx: number, completed: number) => {
+    (newQueue: CardState[], idx: number, completed: number, rating: Rating) => {
       // In weakspots mode, check if trouble hit 0 after a nailed answer
       if (isWeakSpots) {
         const card = currentCardRef.current;
         if (card) {
           const progress = getCharProgress(type, card.card.romaji);
           if (progress.trouble <= 0) {
-            // Store pending state and ask for confirmation
             pendingQueueRef.current = newQueue;
             pendingIndexRef.current = idx;
             setPhase("confirm-remove");
@@ -120,17 +119,20 @@ function StudySession() {
           }
         }
       }
-      if (isWordMode) {
-        // Word mode: wait for user to press Enter, no auto-advance
-        pendingQueueRef.current = newQueue;
-        pendingIndexRef.current = idx;
-        return;
+
+      // Store pending state (used by keypress handler to advance)
+      pendingQueueRef.current = newQueue;
+      pendingIndexRef.current = idx;
+
+      if (rating === "nailed") {
+        // Correct: auto-advance after 1000ms
+        timeoutRef.current = setTimeout(() => {
+          advanceToNext(newQueue, idx, completed);
+        }, 1000);
       }
-      timeoutRef.current = setTimeout(() => {
-        advanceToNext(newQueue, idx, completed);
-      }, 1500);
+      // Incorrect (meh/nope): wait for keypress — handled by the useEffect listener
     },
-    [isWeakSpots, isWordMode, type, advanceToNext]
+    [isWeakSpots, type, advanceToNext]
   );
 
   const handleRemoveCard = useCallback(
@@ -149,46 +151,43 @@ function StudySession() {
     [advanceToNext, cardsCompleted]
   );
 
+  const handleDowngrade = useCallback(() => {
+    if (!lastResult || lastResult.rating === "nope") return;
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+
+    const oldRating = lastResult.rating;
+    const newRating = downgradeRating(oldRating);
+    const card = currentCardRef.current!;
+
+    setStats((s) => ({
+      ...s,
+      [oldRating]: s[oldRating as keyof typeof s] - 1,
+      [newRating]: s[newRating as keyof typeof s] + 1,
+    }));
+
+    revertAndReapply(type, card.card.romaji, oldRating, newRating);
+
+    const newQueue = rateCard(preRateQueueRef.current, preRateIndexRef.current, newRating);
+
+    if (mode === "learning") {
+      const unlocked = checkAndUnlock(type);
+      if (unlocked) {
+        setUnlockedDuring((prev) =>
+          prev.includes(unlocked) ? prev : [...prev, unlocked]
+        );
+      }
+    }
+
+    advanceToNext(newQueue, preRateIndexRef.current, cardsCompleted);
+  }, [lastResult, type, mode, cardsCompleted, advanceToNext]);
+
+  const handleAdvance = useCallback(() => {
+    if (timeoutRef.current) clearTimeout(timeoutRef.current);
+    advanceToNext(pendingQueueRef.current, pendingIndexRef.current, cardsCompleted);
+  }, [advanceToNext, cardsCompleted]);
+
   const handleSubmit = useCallback(() => {
     if (queue.length === 0) return;
-
-    // Word mode: Enter during result just advances, no downgrade
-    if (phase === "result" && isWordMode) {
-      advanceToNext(pendingQueueRef.current, pendingIndexRef.current, cardsCompleted);
-      return;
-    }
-
-    // If in result phase, handle downgrade
-    if (phase === "result" && lastResult && lastResult.rating !== "nope") {
-      if (timeoutRef.current) clearTimeout(timeoutRef.current);
-
-      const oldRating = lastResult.rating;
-      const newRating = downgradeRating(oldRating);
-      const card = currentCardRef.current!;
-
-      setStats((s) => ({
-        ...s,
-        [oldRating]: s[oldRating as keyof typeof s] - 1,
-        [newRating]: s[newRating as keyof typeof s] + 1,
-      }));
-
-      revertAndReapply(type, card.card.romaji, oldRating, newRating);
-
-      const newQueue = rateCard(preRateQueueRef.current, preRateIndexRef.current, newRating);
-
-      if (mode === "learning") {
-        const unlocked = checkAndUnlock(type);
-        if (unlocked) {
-          setUnlockedDuring((prev) =>
-            prev.includes(unlocked) ? prev : [...prev, unlocked]
-          );
-        }
-      }
-
-      advanceToNext(newQueue, preRateIndexRef.current, cardsCompleted);
-      return;
-    }
-
     if (phase !== "input") return;
 
     const card = queue[currentIndex];
@@ -221,10 +220,10 @@ function StudySession() {
 
     const newQueue = rateCard(queue, currentIndex, rating);
 
-    scheduleAdvance(newQueue, currentIndex, cardsCompleted + 1);
-  }, [queue, currentIndex, inputValue, type, cardsCompleted, phase, lastResult, mode, advanceToNext, scheduleAdvance]);
+    scheduleAdvance(newQueue, currentIndex, cardsCompleted + 1, rating);
+  }, [queue, currentIndex, inputValue, type, cardsCompleted, phase, mode, scheduleAdvance]);
 
-  // Listen for Enter during result phase (downgrade) and confirm-remove phase
+  // Listen for keypresses during result and confirm-remove phases
   useEffect(() => {
     if (phase !== "result" && phase !== "confirm-remove") return;
     const handler = (e: KeyboardEvent) => {
@@ -236,14 +235,21 @@ function StudySession() {
           e.preventDefault();
           handleRemoveCard(false);
         }
-      } else if (phase === "result" && e.key === "Enter") {
-        e.preventDefault();
-        handleSubmit();
+      } else if (phase === "result") {
+        if (e.key === "Enter" || e.key === " ") {
+          // Advance to next card
+          e.preventDefault();
+          handleAdvance();
+        } else if (e.key === "Backspace") {
+          // Downgrade rating for more practice
+          e.preventDefault();
+          handleDowngrade();
+        }
       }
     };
     window.addEventListener("keydown", handler);
     return () => window.removeEventListener("keydown", handler);
-  }, [phase, handleSubmit, handleRemoveCard]);
+  }, [phase, handleRemoveCard, handleAdvance, handleDowngrade]);
 
   // Cleanup timeout on unmount
   useEffect(() => {
@@ -365,15 +371,16 @@ function StudySession() {
       <div className="h-24 flex flex-col items-center justify-center">
         {phase === "confirm-remove" ? (
           <div className="flex flex-col items-center gap-3">
+            Congrats! It looks like you've got this one down. 
             <span className="text-zinc-300 text-sm font-medium">
               Trouble score hit 0 — remove from stack?
             </span>
             <div className="flex gap-3">
               <button
                 onClick={() => handleRemoveCard(true)}
-                className="px-4 py-2 rounded-xl bg-red-600 hover:bg-red-500 text-sm font-semibold text-white transition-colors"
+                className="px-4 py-2 rounded-xl bg-green-600 hover:bg-green-500 text-sm font-semibold text-white transition-colors"
               >
-                Remove
+                Remove from stack
               </button>
               <button
                 onClick={() => handleRemoveCard(false)}

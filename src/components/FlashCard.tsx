@@ -80,13 +80,25 @@ export default function FlashCard({ card, result, troubleScore, showEnglish, isW
                 you typed: {result.userAnswer || "(empty)"}
               </span>
             )}
-            <span className="text-xs text-zinc-600 mt-1">
-              {isWordMode
-                ? "enter = next"
-                : result.rating !== "nope"
-                ? "enter = more practice"
-                : null}
-            </span>
+            {result.rating === "nailed" ? (
+              <span className="text-xs text-zinc-600 mt-1">
+                {isWordMode ? "enter = next" : "backspace = more practice"}
+              </span>
+            ) : (
+              <div className="flex flex-col items-center gap-0.5 mt-1">
+                <span className="text-xs text-zinc-500">
+                  <span className="px-1.5 py-0.5 bg-zinc-700 rounded border border-zinc-600 mr-1">enter</span>
+                  next
+                  {result.rating !== "nope" && (
+                    <>
+                      <span className="mx-2 text-zinc-700">|</span>
+                      <span className="px-1.5 py-0.5 bg-zinc-700 rounded border border-zinc-600 mr-1">backspace</span>
+                      more practice
+                    </>
+                  )}
+                </span>
+              </div>
+            )}
           </div>
         ) : (
           <span className="text-zinc-600 text-sm">type the romaji</span>
