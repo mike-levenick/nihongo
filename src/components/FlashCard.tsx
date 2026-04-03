@@ -15,6 +15,7 @@ interface FlashCardProps {
   troubleScore?: number | null;
   showEnglish?: boolean;
   isWordMode?: boolean;
+  canClearCard?: boolean;
 }
 
 const ratingColors: Record<Rating, string> = {
@@ -37,7 +38,7 @@ function charSizeClass(text: string): string {
   return "text-4xl";
 }
 
-export default function FlashCard({ card, result, troubleScore, showEnglish, isWordMode }: FlashCardProps) {
+export default function FlashCard({ card, result, troubleScore, showEnglish, isWordMode, canClearCard }: FlashCardProps) {
   return (
     <div className={`w-full ${card.character.length > 4 ? "max-w-md" : "max-w-sm"} min-h-80 select-none relative`}>
       <div className="w-full min-h-80 flex flex-col items-center justify-center rounded-2xl bg-zinc-800 border border-zinc-700 px-4 py-6">
@@ -80,13 +81,33 @@ export default function FlashCard({ card, result, troubleScore, showEnglish, isW
                 you typed: {result.userAnswer || "(empty)"}
               </span>
             )}
-            <span className="text-xs text-zinc-600 mt-1">
-              {isWordMode
-                ? "enter = next"
-                : result.rating !== "nope"
-                ? "enter = more practice"
-                : null}
-            </span>
+            {result.rating === "nailed" ? (
+              <div className="flex flex-col items-center gap-0.5 mt-1">
+                <span className="text-xs text-zinc-600">
+                  {isWordMode ? "enter = next" : "backspace = more practice"}
+                </span>
+                {canClearCard && (
+                  <span className="text-xs text-green-600">
+                    <span className="px-1.5 py-0.5 bg-zinc-700 rounded border border-zinc-600 mr-1">esc</span>
+                    clear this card
+                  </span>
+                )}
+              </div>
+            ) : (
+              <div className="flex flex-col items-center gap-0.5 mt-1">
+                <span className="text-xs text-zinc-500">
+                  <span className="px-1.5 py-0.5 bg-zinc-700 rounded border border-zinc-600 mr-1">enter</span>
+                  next
+                  {result.rating !== "nope" && (
+                    <>
+                      <span className="mx-2 text-zinc-700">|</span>
+                      <span className="px-1.5 py-0.5 bg-zinc-700 rounded border border-zinc-600 mr-1">backspace</span>
+                      more practice
+                    </>
+                  )}
+                </span>
+              </div>
+            )}
           </div>
         ) : (
           <span className="text-zinc-600 text-sm">type the romaji</span>
